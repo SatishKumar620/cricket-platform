@@ -688,27 +688,27 @@ function NewsTab() {
       {/* Rest of articles */}
       {rest.map((item, i) => (
         <div key={i} onClick={() => window.open(item.link, "_blank")} style={{
-          display: "flex", gap: 12, background: "#161c24",
-          borderRadius: 12, border: "1px solid #1e2633",
+          display: "flex", gap: 12, background: "#ffffff",
+          borderRadius: 12, border: "1px solid #e8edf2",
           padding: 12, marginBottom: 10, cursor: "pointer",
           transition: "background .15s",
         }}
-        onTouchStart={e => e.currentTarget.style.background = "#1a2230"}
-        onTouchEnd={e => e.currentTarget.style.background = "#161c24"}
+        onTouchStart={e => e.currentTarget.style.background = "#f8fafc"}
+        onTouchEnd={e => e.currentTarget.style.background = "#ffffff"}
         >
           <img src={NEWS_IMAGES[(i + 1) % NEWS_IMAGES.length]} alt="" style={{
             width: 80, height: 70, borderRadius: 8, objectFit: "cover", flexShrink: 0,
           }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#d0dce8", lineHeight: 1.35, marginBottom: 5,
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a2433", lineHeight: 1.35, marginBottom: 5,
               display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
               {item.title}
             </div>
-            <div style={{ fontSize: 11, color: "#3a4a5a", display: "-webkit-box", WebkitLineClamp: 2,
+            <div style={{ fontSize: 11, color: "#6b7c8a", display: "-webkit-box", WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.4 }}>
               {item.desc}
             </div>
-            <div style={{ fontSize: 10, color: "#2a3a4a", marginTop: 5 }}>
+            <div style={{ fontSize: 10, color: "#8a9bb0", marginTop: 5 }}>
               {new Date(item.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
             </div>
           </div>
