@@ -79,7 +79,7 @@ export default function ScoresPage({ onBack }) {
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const loadMatches = async () => {
-    if (!API_KEY || API_KEY === "your_key_here") {
+    if (!API_KEY) {
       setError("CricAPI key not configured");
       setLoading(false);
       return;
