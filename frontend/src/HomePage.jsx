@@ -67,6 +67,7 @@ export default function HomePage({ onEnter }) {
           background: #0a0a08;
         }
         .hp-hero-bg {
+          pointer-events: none;
           position: absolute; inset: 0;
           background-image: url('https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=1600&q=80');
           background-size: cover; background-position: center 30%;
@@ -74,6 +75,7 @@ export default function HomePage({ onEnter }) {
           filter: saturate(0.7);
         }
         .hp-hero-overlay {
+          pointer-events: none;
           position: absolute; inset: 0;
           background: linear-gradient(
             to bottom,
