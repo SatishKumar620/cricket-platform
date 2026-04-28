@@ -121,6 +121,7 @@ function StatRow({ label, val, accent }) {
       <span style={{ fontSize: 10, color: "#8a8578", textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
       <span style={{ fontSize: 12, color: accent || "#1a1a18", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>{val}</span>
     </div>
+      </div>
   );
 }
 
