@@ -131,7 +131,7 @@ function BallDot({ val, fresh }) {
 function StatRow({ label, val, accent }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: "1px solid #f0e8dc" }}>
-      <span style={{ fontSize: 10, color: "#8a8578", textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
+      <span style={{ fontSize: 10, color: "#6a6a68", textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
       <span style={{ fontSize: 12, color: accent || "#1a1a18", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>{val}</span>
     </div>
   );
@@ -163,7 +163,7 @@ function CommentaryBubble({ item, isNew }) {
       }}>{item.ball}</div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 9, color: s.color, letterSpacing: 1, marginBottom: 4 }}>{item.match} · {item.ts}</div>
-        <div style={{ fontSize: 12, color: "#c4b8a8", lineHeight: 1.6 }}>
+        <div style={{ fontSize: 12, color: "#4a4a48", lineHeight: 1.6 }}>
           {item.text.slice(0, chars)}
           {chars < item.text.length && <span style={{ opacity: 0.4 }}>|</span>}
         </div>
@@ -174,16 +174,16 @@ function CommentaryBubble({ item, isNew }) {
 
 function YTSearch() {
   const [query, setQuery] = useState("IPL 2025 live streaming");
-  const [src, setSrc] = useState("https://www.youtube.com/embed/live_stream?channel=UCnkXTCGCNyMd0OT9MUoaYww");
+  const [src, setSrc] = useState("https://www.youtube.com/embed/tNa6ORITpKk");
 
   const doSearch = () => {
     const encoded = encodeURIComponent(query);
-    setSrc("https://www.youtube.com/results?search_query=" + encoded);
+    setSrc("https://www.youtube.com/embed?listType=search&list=" + encoded + "&autoplay=1");
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#1a1a1a" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f0f0f0" }}>
         <span style={{ fontSize: 14 }}>▶</span>
         <input
           value={query}
@@ -191,7 +191,7 @@ function YTSearch() {
           onKeyDown={e => e.key === "Enter" && doSearch()}
           placeholder="Search YouTube for live cricket..."
           style={{
-            flex: 1, background: "#2a2a2a", border: "1px solid #333",
+            flex: 1, background: "#e8e8e8", border: "1px solid #333",
             borderRadius: 8, padding: "7px 12px", color: "#fff",
             fontSize: 12, fontFamily: "'DM Sans', sans-serif", outline: "none",
           }}
@@ -240,30 +240,30 @@ function LiveChat() {
   };
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", borderTop: "1px solid #222220" }}>
-      <div style={{ padding: "10px 16px", borderBottom: "1px solid #222220", display: "flex", alignItems: "center", gap: 8 }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", borderTop: "1px solid #e8e8e8" }}>
+      <div style={{ padding: "10px 16px", borderBottom: "1px solid #e8e8e8", display: "flex", alignItems: "center", gap: 8 }}>
         <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#ff4d4f" }} />
         <span style={{ fontSize: 9, color: "#c4956a", letterSpacing: 2, textTransform: "uppercase" }}>Live Chat</span>
-        <span style={{ fontSize: 9, color: "#3a3a36", marginLeft: "auto" }}>last 15 only</span>
+        <span style={{ fontSize: 9, color: "#5a5a58", marginLeft: "auto" }}>last 15 only</span>
       </div>
       <div style={{ flex: 1, overflowY: "auto", padding: "10px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
         {messages.map(m => (
           <div key={m.id} style={{ fontSize: 12, lineHeight: 1.5 }}>
             <span style={{ color: m.color, fontWeight: 700, fontSize: 11 }}>{m.user} </span>
-            <span style={{ color: "#c4b8a8" }}>{m.text}</span>
+            <span style={{ color: "#4a4a48" }}>{m.text}</span>
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
-      <div style={{ padding: "10px 12px", borderTop: "1px solid #222220", display: "flex", gap: 8 }}>
+      <div style={{ padding: "10px 12px", borderTop: "1px solid #e8e8e8", display: "flex", gap: 8 }}>
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
           placeholder="Say something..."
           style={{
-            flex: 1, background: "#1e1e1c", border: "1px solid #2a2a28",
-            borderRadius: 8, padding: "7px 12px", color: "#faf7f2",
+            flex: 1, background: "#f0f0f0", border: "1px solid #e0e0e0",
+            borderRadius: 8, padding: "7px 12px", color: "#1a1a18",
             fontSize: 12, fontFamily: "'DM Sans', sans-serif", outline: "none",
           }}
         />
@@ -388,7 +388,7 @@ export default function App() {
   if (screen === "home")   return <HomePage onEnter={(s) => setScreen(s || "dashboard")} />;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#111110", fontFamily: "'DM Sans', sans-serif", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "'DM Sans', sans-serif", display: "flex", flexDirection: "column" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap');
@@ -403,12 +403,12 @@ export default function App() {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", background: "#0a0a08", borderBottom: "1px solid #1e1e1c", position: "sticky", top: 0, zIndex: 50 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", background: "#ffffff", borderBottom: "1px solid #e8e8e8", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <button onClick={() => setScreen("home")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#8a8578", fontFamily: "'DM Sans', sans-serif" }}>
+          <button onClick={() => setScreen("home")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#6a6a68", fontFamily: "'DM Sans', sans-serif" }}>
             Back
           </button>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 900, color: "#faf7f2" }}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 900, color: "#1a1a18" }}>
             Cric<span style={{ color: "#c4956a" }}>Stream</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, background: connected ? "#0a2e18" : "#1a1a18", border: "1px solid " + (connected ? "#00e676" : "#2a2a28"), padding: "4px 10px", borderRadius: 100, fontSize: 10, color: connected ? "#00e676" : "#8a8578", fontWeight: 600, letterSpacing: 1 }}>
@@ -417,10 +417,10 @@ export default function App() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <select value={activeLanguage} onChange={e => setActiveLanguage(e.target.value)} style={{ fontSize: 12, padding: "6px 10px", borderRadius: 8, border: "1px solid #2a2a28", background: "#1a1a18", color: "#faf7f2", fontFamily: "'DM Sans', sans-serif" }}>
+          <select value={activeLanguage} onChange={e => setActiveLanguage(e.target.value)} style={{ fontSize: 12, padding: "6px 10px", borderRadius: 8, border: "1px solid #e0e0e0", background: "#f0f0f0", color: "#1a1a18", fontFamily: "'DM Sans', sans-serif" }}>
             {LANGS.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
           </select>
-          <select value={activeVoice} onChange={e => setActiveVoice(e.target.value)} style={{ fontSize: 12, padding: "6px 10px", borderRadius: 8, border: "1px solid #2a2a28", background: "#1a1a18", color: "#faf7f2", fontFamily: "'DM Sans', sans-serif" }}>
+          <select value={activeVoice} onChange={e => setActiveVoice(e.target.value)} style={{ fontSize: 12, padding: "6px 10px", borderRadius: 8, border: "1px solid #e0e0e0", background: "#f0f0f0", color: "#1a1a18", fontFamily: "'DM Sans', sans-serif" }}>
             {VOICES.map(v => <option key={v.id} value={v.id}>{v.label}</option>)}
           </select>
           <button onClick={() => setAudioEnabled(p => !p)} style={{ padding: "6px 14px", borderRadius: 100, fontSize: 12, fontWeight: 600, background: audioEnabled ? "#c4956a" : "transparent", color: audioEnabled ? "#fff" : "#8a8578", border: "1.5px solid #2a2a28", cursor: "pointer" }}>
@@ -430,7 +430,7 @@ export default function App() {
       </div>
 
       {/* Match tabs */}
-      <div style={{ display: "flex", padding: "0 24px", borderBottom: "1px solid #1e1e1c", background: "#0a0a08", overflowX: "auto" }}>
+      <div style={{ display: "flex", padding: "0 24px", borderBottom: "1px solid #e8e8e8", background: "#ffffff", overflowX: "auto" }}>
         {matches.map(m => (
           <button key={m.id} onClick={() => setActiveId(m.id)} style={{ padding: "12px 20px", border: "none", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: activeId === m.id ? "#faf7f2" : "#8a8578", borderBottom: activeId === m.id ? "2px solid #c4956a" : "2px solid transparent", whiteSpace: "nowrap", transition: "all 0.2s", fontFamily: "'DM Sans', sans-serif" }}>
             {m.title}
@@ -439,7 +439,7 @@ export default function App() {
       </div>
 
       {/* Subtitle */}
-      <div style={{ padding: "8px 24px", background: "#0f0f0e", fontSize: 11, color: "#8a8578", letterSpacing: 1, borderBottom: "1px solid #1e1e1c" }}>
+      <div style={{ padding: "8px 24px", background: "#f5f5f5", fontSize: 11, color: "#6a6a68", letterSpacing: 1, borderBottom: "1px solid #e8e8e8" }}>
         {activeMatch.subtitle}
       </div>
 
@@ -447,12 +447,12 @@ export default function App() {
       <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 300px", gridTemplateRows: "auto auto 1fr", overflow: "hidden", minHeight: 0 }}>
 
         {/* YouTube */}
-        <div style={{ gridColumn: "1", gridRow: "1", background: "#0f0f0f", borderBottom: "1px solid #1e1e1c", height: 270 }}>
+        <div style={{ gridColumn: "1", gridRow: "1", background: "#f5f5f5", borderBottom: "1px solid #e8e8e8", height: 270 }}>
           <YTSearch />
         </div>
 
         {/* Ball by Ball */}
-        <div style={{ gridColumn: "1", gridRow: "2", padding: "12px 20px", background: "#1a1a18", borderBottom: "1px solid #222220" }}>
+        <div style={{ gridColumn: "1", gridRow: "2", padding: "12px 20px", background: "#f0f0f0", borderBottom: "1px solid #e8e8e8" }}>
           <div style={{ fontSize: 9, color: "#c4956a", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>Ball by Ball</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             {activeMatch.ballHistory.map((b, i) => (
@@ -460,20 +460,20 @@ export default function App() {
             ))}
             <div style={{ marginLeft: 12, display: "flex", gap: 20 }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 1, textTransform: "uppercase" }}>CRR</div>
+                <div style={{ fontSize: 9, color: "#6a6a68", letterSpacing: 1, textTransform: "uppercase" }}>CRR</div>
                 <div style={{ fontSize: 20, fontFamily: "'JetBrains Mono', monospace", fontWeight: 800, color: "#00e676" }}>{activeMatch.crr?.toFixed(2)}</div>
               </div>
               {activeMatch.rrr && (
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 1, textTransform: "uppercase" }}>RRR</div>
+                  <div style={{ fontSize: 9, color: "#6a6a68", letterSpacing: 1, textTransform: "uppercase" }}>RRR</div>
                   <div style={{ fontSize: 20, fontFamily: "'JetBrains Mono', monospace", fontWeight: 800, color: activeMatch.rrr > 10 ? "#ff4d4f" : "#faad14" }}>{activeMatch.rrr?.toFixed(2)}</div>
                 </div>
               )}
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 1, textTransform: "uppercase" }}>Partnership</div>
+                <div style={{ fontSize: 9, color: "#6a6a68", letterSpacing: 1, textTransform: "uppercase" }}>Partnership</div>
                 <div style={{ fontSize: 20, fontFamily: "'JetBrains Mono', monospace", fontWeight: 800, color: "#c4956a" }}>
                   {activeMatch.partnership.runs}
-                  <span style={{ fontSize: 11, color: "#8a8578" }}> ({activeMatch.partnership.balls}b)</span>
+                  <span style={{ fontSize: 11, color: "#6a6a68" }}> ({activeMatch.partnership.balls}b)</span>
                 </div>
               </div>
             </div>
@@ -481,16 +481,16 @@ export default function App() {
         </div>
 
         {/* AI Commentary */}
-        <div style={{ gridColumn: "1", gridRow: "3", padding: "20px", overflowY: "auto", background: "#111110" }}>
+        <div style={{ gridColumn: "1", gridRow: "3", padding: "20px", overflowY: "auto", background: "#ffffff" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <div style={{ fontSize: 9, color: "#c4956a", letterSpacing: 2, textTransform: "uppercase" }}>AI Commentary</div>
-            <div style={{ fontSize: 9, color: "#8a8578", fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: 9, color: "#6a6a68", fontFamily: "'JetBrains Mono', monospace" }}>
               {LANGS.find(l => l.code === activeLanguage)?.label} - {VOICES.find(v => v.id === activeVoice)?.label}
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {commentary.length === 0 && (
-              <div style={{ fontSize: 12, color: "#3a3a36", padding: "20px 0", fontStyle: "italic" }}>Waiting for first ball event...</div>
+              <div style={{ fontSize: 12, color: "#5a5a58", padding: "20px 0", fontStyle: "italic" }}>Waiting for first ball event...</div>
             )}
             {commentary.map((c, i) => (
               <div key={c.id} style={{ animation: i === 0 ? "fadeUp 0.4s ease" : "none" }}>
@@ -501,17 +501,17 @@ export default function App() {
         </div>
 
         {/* Right sidebar */}
-        <div style={{ gridColumn: "2", gridRow: "1 / 4", display: "flex", flexDirection: "column", borderLeft: "1px solid #1e1e1c", background: "#161614", overflow: "hidden" }}>
+        <div style={{ gridColumn: "2", gridRow: "1 / 4", display: "flex", flexDirection: "column", borderLeft: "1px solid #e8e8e8", background: "#f9f9f9", overflow: "hidden" }}>
 
           {/* Scorecard */}
-          <div style={{ padding: "16px", overflowY: "auto", maxHeight: "55%", borderBottom: "1px solid #222220" }}>
+          <div style={{ padding: "16px", overflowY: "auto", maxHeight: "55%", borderBottom: "1px solid #e8e8e8" }}>
             <div style={{ fontSize: 9, color: "#c4956a", letterSpacing: 2, textTransform: "uppercase", marginBottom: 14 }}>Scorecard</div>
 
             {[activeMatch.team1, activeMatch.team2].map((team, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: i === 0 ? "#1e2e22" : "#1a1a18", border: "1px solid " + (i === 0 ? "#2d5a3d" : "#2a2a28"), marginBottom: 8, animation: "fadeUp 0.4s ease" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 18 }}>{team.flag}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#faf7f2" }}>{team.name}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1a1a18" }}>{team.name}</span>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontSize: 18, fontFamily: "'JetBrains Mono', monospace", fontWeight: 800, color: i === 0 ? "#00e676" : "#8a8578" }}>{team.score}</div>
@@ -520,13 +520,13 @@ export default function App() {
               </div>
             ))}
 
-            <div style={{ padding: "10px 12px", borderRadius: 8, background: "#1e1e1c", border: "1px solid #2a2a28", fontSize: 11, color: "#c4956a", fontWeight: 600, marginBottom: 14 }}>
+            <div style={{ padding: "10px 12px", borderRadius: 8, background: "#f0f0f0", border: "1px solid #e0e0e0", fontSize: 11, color: "#c4956a", fontWeight: 600, marginBottom: 14 }}>
               {activeMatch.status}
             </div>
 
-            <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Batting</div>
+            <div style={{ fontSize: 9, color: "#6a6a68", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Batting</div>
             {[activeMatch.batter1, activeMatch.batter2].map((b, i) => (
-              <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #222220" }}>
+              <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #e8e8e8" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                   <span style={{ fontSize: 12, color: i === 0 ? "#faf7f2" : "#8a8578", fontWeight: i === 0 ? 700 : 400 }}>{i === 0 ? "* " : ""}{b.name}</span>
                   <span style={{ fontSize: 14, fontFamily: "'JetBrains Mono', monospace", fontWeight: 900, color: i === 0 ? "#00e676" : "#6b6560" }}>{b.runs}</span>
@@ -540,10 +540,10 @@ export default function App() {
               </div>
             ))}
 
-            <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 1, textTransform: "uppercase", margin: "12px 0 8px" }}>Bowling</div>
+            <div style={{ fontSize: 9, color: "#6a6a68", letterSpacing: 1, textTransform: "uppercase", margin: "12px 0 8px" }}>Bowling</div>
             <div style={{ padding: "8px 0" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ fontSize: 12, color: "#faf7f2", fontWeight: 700 }}>{activeMatch.bowler.name}</span>
+                <span style={{ fontSize: 12, color: "#1a1a18", fontWeight: 700 }}>{activeMatch.bowler.name}</span>
                 <span style={{ fontSize: 14, fontFamily: "'JetBrains Mono', monospace", fontWeight: 900, color: "#ff4d4f" }}>{activeMatch.bowler.wkts}/{activeMatch.bowler.runs}</span>
               </div>
               <div style={{ display: "flex", gap: 10, fontSize: 10, color: "#6b6560" }}>
