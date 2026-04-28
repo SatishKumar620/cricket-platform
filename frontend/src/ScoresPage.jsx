@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const API_KEY = import.meta.env.VITE_CRICAPI_KEY;
+const API_KEY = import.meta.env.VITE_CRICKETDATA_KEY;
 
 function MatchCard({ match }) {
   const scores = match.score || [];
@@ -86,7 +86,7 @@ export default function ScoresPage({ onBack }) {
     }
     try {
       const res = await fetch(
-        `https://api.cricapi.com/v1/currentMatches?apikey=${API_KEY}&offset=0`
+        `https://api.cricketdata.org/cricket/v1/currentMatches?apikey=${API_KEY}&offset=0`
       );
       const data = await res.json();
       if (data.status !== "success") throw new Error(data.reason || "API error");
