@@ -43,7 +43,7 @@ const NEWS_IMAGES = [
 ];
 
 function NewsImage({ index, style }) {
-  const [src, setSrc] = React.useState(NEWS_IMAGES[index % NEWS_IMAGES.length]);
+  const [src, setSrc] = useState(NEWS_IMAGES[index % NEWS_IMAGES.length]);
   return (
     <img src={src} alt="" style={style}
       onError={() => setSrc("https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600&q=80")}
@@ -164,8 +164,8 @@ function ScorecardPage({ matchId, matchName, onBack }) {
   }, [matchId]);
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", background: "#f4f7fb", fontFamily: "'DM Sans', sans-serif" }}>
-      <div style={{ padding: "16px 24px", borderBottom: "1px solid #1e2633", display: "flex", alignItems: "center", gap: 14 }}>
+    <div style={{ minHeight: "100vh", background: "#f4f7fb", transition: "background .2s", fontFamily: "'DM Sans', sans-serif" }}>
+      <div style={{ padding: "16px 24px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: 14 }}>
         <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#8a9bb0" }}>← Back</button>
         <span style={{ fontWeight: 700, fontSize: 16, color: "#1a2433" }}>Scorecard</span>
       </div>
@@ -174,7 +174,7 @@ function ScorecardPage({ matchId, matchName, onBack }) {
   );
 
   if (error) return (
-    <div style={{ minHeight: "100vh", background: "#f4f7fb", fontFamily: "'DM Sans', sans-serif", padding: 24 }}>
+    <div style={{ minHeight: "100vh", background: "#f4f7fb", transition: "background .2s", fontFamily: "'DM Sans', sans-serif", padding: 24 }}>
       <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#8a9bb0", marginBottom: 16 }}>← Back</button>
       <ErrorMsg msg={error} />
     </div>
@@ -202,14 +202,14 @@ function ScorecardPage({ matchId, matchName, onBack }) {
   const batMeta = teamMeta(batTeamName);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f4f7fb", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#f4f7fb", transition: "background .2s", fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
         @keyframes fadeSlide { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         @keyframes livePulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
       `}</style>
 
       {/* Sticky header */}
-      <div style={{ position: "sticky", top: 0, zIndex: 50, background: "#f4f7fb", borderBottom: "1px solid #1e2633" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 50, background: "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
         <div style={{ padding: "14px 20px", display: "flex", alignItems: "center", gap: 14 }}>
           <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#8a9bb0" }}>← Back</button>
           <div>
@@ -245,7 +245,7 @@ function ScorecardPage({ matchId, matchName, onBack }) {
         {/* Hero score banner */}
         <div style={{
           borderRadius: 16, overflow: "hidden", marginBottom: 16, position: "relative",
-          background: `linear-gradient(135deg, ${batMeta.c1}cc, ${batMeta.c2}88, #0d1117)`,
+          background: `linear-gradient(135deg, ${batMeta.c1}cc, ${batMeta.c2}88, #f4f7fb)`,
           border: `1px solid ${batMeta.c1}44`,
         }}>
           <img src={HERO_IMG} alt="" style={{
@@ -285,8 +285,8 @@ function ScorecardPage({ matchId, matchName, onBack }) {
 
         {/* Batting card */}
         {batters.filter(b => b.runs !== undefined).length > 0 && (
-          <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #1e2633", overflow: "hidden", marginBottom: 12 }}>
-            <div style={{ padding: "12px 16px", background: "#f0f4f8", borderBottom: "1px solid #1e2633", display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e2e8f0", overflow: "hidden", marginBottom: 12 }}>
+            <div style={{ padding: "12px 16px", background: "#f0f4f8", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: 8 }}>
               <TeamLogo imageId={teamImgMap[batTeamName]} name={batTeamName} size={22} />
               <span style={{ fontSize: 13, fontWeight: 800, color: "#c4956a" }}>Batting</span>
             </div>
@@ -313,7 +313,7 @@ function ScorecardPage({ matchId, matchName, onBack }) {
                 <span style={{ fontSize: 11, fontFamily: "monospace", color: parseFloat(b.strikeRate) > 150 ? "#f0c040" : "#8a9bb0", textAlign: "center" }}>{b.strikeRate}</span>
               </div>
             ))}
-            <div style={{ padding: "8px 14px", borderTop: "1px solid #1e2633", fontSize: 11, color: "#6b7c8a" }}>
+            <div style={{ padding: "8px 14px", borderTop: "1px solid #e2e8f0", fontSize: 11, color: "#6b7c8a" }}>
               Extras: {inn?.extrasData?.total ?? 0}
               {" "}(b {inn?.extrasData?.byes ?? 0}, lb {inn?.extrasData?.legByes ?? 0}, w {inn?.extrasData?.wides ?? 0}, nb {inn?.extrasData?.noBalls ?? 0})
             </div>
@@ -322,8 +322,8 @@ function ScorecardPage({ matchId, matchName, onBack }) {
 
         {/* Bowling card */}
         {bowlers.length > 0 && (
-          <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #1e2633", overflow: "hidden", marginBottom: 12 }}>
-            <div style={{ padding: "12px 16px", background: "#f0f4f8", borderBottom: "1px solid #1e2633", display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e2e8f0", overflow: "hidden", marginBottom: 12 }}>
+            <div style={{ padding: "12px 16px", background: "#f0f4f8", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: 8 }}>
               <TeamLogo imageId={teamImgMap[bowlTeamName]} name={bowlTeamName} size={22} />
               <span style={{ fontSize: 13, fontWeight: 800, color: "#4a7c59" }}>Bowling</span>
             </div>
@@ -351,13 +351,13 @@ function ScorecardPage({ matchId, matchName, onBack }) {
 
         {/* Fall of Wickets */}
         {fow.length > 0 && (
-          <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #1e2633", overflow: "hidden", marginBottom: 12 }}>
-            <div style={{ padding: "12px 16px", background: "#f0f4f8", borderBottom: "1px solid #1e2633" }}>
+          <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e2e8f0", overflow: "hidden", marginBottom: 12 }}>
+            <div style={{ padding: "12px 16px", background: "#f0f4f8", borderBottom: "1px solid #e2e8f0" }}>
               <span style={{ fontSize: 13, fontWeight: 800, color: "#8a9bb0" }}>Fall of Wickets</span>
             </div>
             <div style={{ padding: "12px 16px", display: "flex", flexWrap: "wrap", gap: 8 }}>
               {fow.map((w, i) => (
-                <div key={i} style={{ background: "#f0f4f8", borderRadius: 8, padding: "5px 10px", fontSize: 11, border: "1px solid #1e2633" }}>
+                <div key={i} style={{ background: "#f0f4f8", borderRadius: 8, padding: "5px 10px", fontSize: 11, border: "1px solid #e2e8f0" }}>
                   <span style={{ fontWeight: 800, color: "#1a2433" }}>{w.wktRuns}/{w.wktNbr}</span>
                   <span style={{ color: "#6b7c8a", marginLeft: 5 }}>({w.batName}, {w.wktOver} ov)</span>
                 </div>
@@ -382,7 +382,7 @@ function MatchCard({ match, onClick, isLive }) {
     <div onClick={onClick} style={{
       background: "#ffffff",
       borderRadius: 14,
-      border: isLive ? `1.5px solid ${color}55` : "1px solid #1e2633",
+      border: isLive ? `1.5px solid ${color}55` : "1px solid #e2e8f0",
       padding: "14px 16px", marginBottom: 10,
       boxShadow: isLive ? `0 4px 20px ${color}22` : "none",
       cursor: "pointer", transition: "transform .15s, box-shadow .15s",
@@ -545,7 +545,7 @@ function MatchesTab({ onSelectMatch }) {
         <>
           <SectionLabel label="UPCOMING" />
           {filteredUpcoming.map((m, i) => (
-            <div key={m.matchId || i} style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #1e2633", padding: "14px 16px", marginBottom: 10, opacity: 0.75 }}>
+            <div key={m.matchId || i} style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e2e8f0", padding: "14px 16px", marginBottom: 10, opacity: 0.75 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
                 <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: 2, color: getColor(m.matchFormat), background: `${getColor(m.matchFormat)}18`, padding: "3px 8px", borderRadius: 6 }}>{m.matchFormat}</span>
                 <span style={{ fontSize: 10, color: "#6b7c8a" }}>{m.seriesName?.slice(0, 24)}</span>
@@ -587,8 +587,8 @@ function TableTab() {
   if (!table.length) return <Empty msg="Points table unavailable" />;
 
   return (
-    <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #1e2633", overflow: "hidden" }}>
-      <div style={{ padding: "14px 16px", background: "#f0f4f8", borderBottom: "1px solid #1e2633", display: "flex", alignItems: "center", gap: 10 }}>
+    <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e2e8f0", overflow: "hidden" }}>
+      <div style={{ padding: "14px 16px", background: "#f0f4f8", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: 10 }}>
         <img src={HERO_IMG} style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", opacity: .7 }} />
         <span style={{ fontSize: 14, fontWeight: 800, color: "#c4956a" }}>IPL 2026 Standings</span>
       </div>
@@ -645,8 +645,8 @@ function StatsTab() {
   if (loading) return <Loader />;
 
   const StatTable = ({ title, rows, cols, accentIdx }) => (
-    <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #1e2633", overflow: "hidden", marginBottom: 14 }}>
-      <div style={{ padding: "12px 16px", background: "#f0f4f8", borderBottom: "1px solid #1e2633" }}>
+    <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e2e8f0", overflow: "hidden", marginBottom: 14 }}>
+      <div style={{ padding: "12px 16px", background: "#f0f4f8", borderBottom: "1px solid #e2e8f0" }}>
         <span style={{ fontSize: 14, fontWeight: 800, color: "#c4956a" }}>{title}</span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: `28px 1fr ${cols.map(() => "46px").join(" ")}`, padding: "7px 14px", borderBottom: "1px solid #1a2230" }}>
@@ -716,7 +716,7 @@ function NewsTab() {
       {rest.map((item, i) => (
         <div key={i} onClick={() => window.open(item.link, "_blank")} style={{
           display: "flex", gap: 12, background: "#ffffff",
-          borderRadius: 12, border: "1px solid #1e2633",
+          borderRadius: 12, border: "1px solid #e2e8f0",
           padding: 12, marginBottom: 10, cursor: "pointer",
           transition: "background .15s",
         }}
@@ -763,7 +763,7 @@ export default function ScoresPage({ onBack }) {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f4f7fb", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#f4f7fb", transition: "background .2s", fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -774,7 +774,7 @@ export default function ScoresPage({ onBack }) {
       `}</style>
 
       {/* Header */}
-      <div style={{ position: "sticky", top: 0, zIndex: 50, background: "#f4f7fb", borderBottom: "1px solid #1e2633" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 50, background: "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
         {/* Top bar */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
           <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#6b7c8a" }}>← Back</button>
@@ -787,7 +787,7 @@ export default function ScoresPage({ onBack }) {
         </div>
 
         {/* Tab bar */}
-        <div style={{ display: "flex", padding: "0 16px", borderTop: "1px solid #1e2633", overflowX: "auto" }}>
+        <div style={{ display: "flex", padding: "0 16px", borderTop: "1px solid #e2e8f0", overflowX: "auto" }}>
           {TABS.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{
               padding: "11px 18px", border: "none", background: "none", cursor: "pointer",
