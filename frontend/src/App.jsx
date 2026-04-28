@@ -513,7 +513,8 @@ export default function App() {
       {/* Main grid */}
       <div style={{
         flex: 1, display: "grid",
-        gridTemplateColumns: "280px 260px 1fr",
+        gridTemplateColumns: "1fr 320px",
+        gridTemplateRows: "auto auto 1fr",
         overflow: "hidden", minHeight: 0,
       }}>
 
