@@ -468,15 +468,18 @@ export default function HomePage({ onEnter }) {
           <h2 className="hp-section-title">Built for fans who refuse to miss a moment</h2>
           <div className="hp-features-grid">
             {[
-              { icon: "⚡", name: "Ball-by-Ball Live", desc: "WebSocket-powered updates land in under 100ms. Every dot, every six, every wicket — in real time.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Virat_Kohli_batting.jpg/640px-Virat_Kohli_batting.jpg" },
-              { icon: "🎙️", name: "AI Commentary", desc: "LLM-generated broadcast commentary that reads the game like a 20-year veteran. Powered by Groq + Mistral.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Wankhede_Stadium_Mumbai.jpg/640px-Wankhede_Stadium_Mumbai.jpg" },
-              { icon: "🌐", name: "18 Languages", desc: "Hindi, Tamil, Bengali, Telugu and 14 more. Commentary auto-translates with cricket terms preserved.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Cricket_ball_old.jpg/640px-Cricket_ball_old.jpg" },
-              { icon: "🔊", name: "Voice Narration", desc: "Kokoro TTS reads the commentary aloud. Choose your commentator voice — from authoritative to energetic.", img: "https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=600&q=80" },
-              { icon: "📊", name: "Deep Scorecard", desc: "Live batting/bowling stats, run rates, partnerships and ball history — all updating in real time.", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=600&q=80" },
-              { icon: "🔄", name: "4-Source Fallback", desc: "CricketData → CricAPI → Cricbuzz scraper → Mock. Your stream never breaks, even at 3 AM.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Virat_Kohli_batting.jpg/640px-Virat_Kohli_batting.jpg" },
+              { icon: "⚡", name: "Ball-by-Ball Live", desc: "WebSocket-powered updates land in under 100ms. Every dot, every six, every wicket — in real time.", bg: "linear-gradient(135deg,#0a2e18,#1a4a2e)", emoji: "🏏" },
+              { icon: "🎙️", name: "AI Commentary", desc: "LLM-generated broadcast commentary that reads the game like a 20-year veteran. Powered by Groq + Mistral.", bg: "linear-gradient(135deg,#1a1040,#2d1b69)", emoji: "🎙️" },
+              { icon: "🌐", name: "18 Languages", desc: "Hindi, Tamil, Bengali, Telugu and 14 more. Commentary auto-translates with cricket terms preserved.", bg: "linear-gradient(135deg,#ff671f,#046a38)", emoji: "🇮🇳" },
+              { icon: "🔊", name: "Voice Narration", desc: "Kokoro TTS reads the commentary aloud. Choose your commentator voice — from authoritative to energetic.", bg: "linear-gradient(135deg,#2e0a0a,#4a1010)", emoji: "📢" },
+              { icon: "📊", name: "Deep Scorecard", desc: "Live batting/bowling stats, run rates, partnerships and ball history — all updating in real time.", bg: "linear-gradient(135deg,#0e1a2e,#1a2e4a)", emoji: "📈" },
+              { icon: "🔄", name: "4-Source Fallback", desc: "CricketData → CricAPI → Cricbuzz scraper → Mock. Your stream never breaks, even at 3 AM.", bg: "linear-gradient(135deg,#1a2e1a,#2e4a2e)", emoji: "🛡️" },
             ].map(f => (
               <div key={f.name} className="hp-feature-card">
-                <img src={f.img} alt={f.name} className="hp-feature-img" />
+                <div style={{ height:160, background:f.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:64, position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", inset:0, opacity:0.08, backgroundImage:"radial-gradient(circle, white 1px, transparent 1px)", backgroundSize:"20px 20px" }} />
+                  {f.emoji}
+                </div>
                 <div className="hp-feature-body">
                   <div className="hp-feature-icon">{f.icon}</div>
                   <div className="hp-feature-name">{f.name}</div>
