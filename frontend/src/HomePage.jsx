@@ -471,9 +471,9 @@ export default function HomePage({ onEnter }) {
               { icon: "⚡", name: "Ball-by-Ball Live", desc: "WebSocket-powered updates land in under 100ms. Every dot, every six, every wicket — in real time.", img: "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?w=600&q=80" },
               { icon: "🎙️", name: "AI Commentary", desc: "LLM-generated broadcast commentary that reads the game like a 20-year veteran. Powered by Groq + Mistral.", img: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=600&q=80" },
               { icon: "🌐", name: "18 Languages", desc: "Hindi, Tamil, Bengali, Telugu and 14 more. Commentary auto-translates with cricket terms preserved.", img: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600&q=80" },
-              { icon: "🔊", name: "Voice Narration", desc: "Kokoro TTS reads the commentary aloud. Choose your commentator voice — from authoritative to energetic.", img: "https://images.unsplash.com/photo-1562077981-4d7eafd44932?w=600&q=80" },
-              { icon: "📊", name: "Deep Scorecard", desc: "Live batting/bowling stats, run rates, partnerships and ball history — all updating in real time.", img: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=80" },
-              { icon: "🔄", name: "4-Source Fallback", desc: "CricketData → CricAPI → Cricbuzz scraper → Mock. Your stream never breaks, even at 3 AM.", img: "https://images.unsplash.com/photo-1576633587382-13ddf37b1fc1?w=600&q=80" },
+              { icon: "🔊", name: "Voice Narration", desc: "Kokoro TTS reads the commentary aloud. Choose your commentator voice — from authoritative to energetic.", img: "https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=600&q=80" },
+              { icon: "📊", name: "Deep Scorecard", desc: "Live batting/bowling stats, run rates, partnerships and ball history — all updating in real time.", img: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=600&q=80" },
+              { icon: "🔄", name: "4-Source Fallback", desc: "CricketData → CricAPI → Cricbuzz scraper → Mock. Your stream never breaks, even at 3 AM.", img: "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?w=600&q=80" },
             ].map(f => (
               <div key={f.name} className="hp-feature-card">
                 <img src={f.img} alt={f.name} className="hp-feature-img" />
