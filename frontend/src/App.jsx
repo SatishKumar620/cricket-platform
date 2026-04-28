@@ -182,6 +182,34 @@ const VOICES = [
   { id: "bm_george",  label: "George (M)"   },
 ];
 
+// ── CricAPI live fetch ────────────────────────────────────────────────────
+async function fetchLiveMatches(apiKey) {
+  try {
+    const res = await fetch(`https://api.cricapi.com/v1/currentMatches?apikey=${apiKey}&offset=0`);
+    const data = await res.json();
+    if (data.status !== "success") return null;
+    return data.data
+      .filter(m => m.matchStarted && !m.matchEnded)
+      .map(m => ({
+        id: m.id,
+        title: m.teams?.join(" vs ") || m.name,
+        subtitle: `${m.matchType?.toUpperCase()} 2022 ${m.venue || ""}`,
+        team1: { name: m.teams?.[0] || "TBA", flag: "🏏", score: m.score?.[0] ? `${m.score[0].r}/${m.score[0].w}` : "Yet to bat", overs: m.score?.[0]?.o || "0" },
+        team2: { name: m.teams?.[1] || "TBA", flag: "🏏", score: m.score?.[1] ? `${m.score[1].r}/${m.score[1].w}` : "Yet to bat", overs: m.score?.[1]?.o || "0" },
+        status: m.status || "Live",
+        ballHistory: [],
+        crr: 0, rrr: null, target: null,
+        batter1: { name: "-", runs: 0, balls: 0, sr: 0, fours: 0, sixes: 0 },
+        batter2: { name: "-", runs: 0, balls: 0, sr: 0, fours: 0, sixes: 0 },
+        bowler: { name: "-", overs: "0", wkts: 0, runs: 0, econ: 0 },
+        partnership: { runs: 0, balls: 0 },
+      }));
+  } catch (e) {
+    console.warn("CricAPI fetch failed:", e);
+    return null;
+  }
+}
+
 export default function App() {
   const [screen, setScreen] = useState("home");
   const [matches, setMatches] = useState(MOCK_MATCHES);
@@ -192,6 +220,25 @@ export default function App() {
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [connected, setConnected] = useState(false);
   const [mockMode, setMockMode] = useState(true);
+
+  // Fetch real scores on mount
+  useEffect(() => {
+    const key = import.meta.env.VITE_CRICAPI_KEY;
+    if (!key || key === "your_key_here") return;
+    fetchLiveMatches(key).then(live => {
+      if (live && live.length > 0) {
+        setMatches(live);
+        setActiveId(live[0].id);
+        setMockMode(false);
+      }
+    });
+    const interval = setInterval(() => {
+      fetchLiveMatches(key).then(live => {
+        if (live && live.length > 0) setMatches(live);
+      });
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const wsScoreRef = useRef(null);
   const wsAudioRef = useRef(null);
