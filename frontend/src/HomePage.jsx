@@ -465,7 +465,92 @@ export default function HomePage({ onEnter }) {
           </div>
         </div>
 
-        <section className="hp-features">
+        
+        {/* IPL Live Widget Banner */}
+        <section className="hp-ipl-banner">
+          <style>{`
+            .hp-ipl-banner {
+              background: var(--ink);
+              padding: 0;
+              display: flex;
+              align-items: stretch;
+              overflow: hidden;
+              border-top: 1px solid rgba(255,255,255,0.06);
+              border-bottom: 1px solid rgba(255,255,255,0.06);
+            }
+            .hp-ipl-img-wrap {
+              flex: 1 1 0;
+              min-width: 0;
+              overflow: hidden;
+              position: relative;
+              max-height: 340px;
+            }
+            .hp-ipl-img-wrap img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+              object-position: center top;
+              display: block;
+            }
+            .hp-ipl-img-overlay {
+              position: absolute; inset: 0;
+              background: linear-gradient(to right, transparent 55%, var(--ink) 100%);
+            }
+            .hp-ipl-widget-wrap {
+              flex: 0 0 340px;
+              width: 340px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              padding: 24px 20px;
+              gap: 10px;
+              background: var(--ink);
+            }
+            .hp-ipl-widget-label {
+              font-size: 9px;
+              letter-spacing: 3px;
+              text-transform: uppercase;
+              color: var(--clay);
+              font-weight: 600;
+              align-self: flex-start;
+            }
+            .hp-ipl-widget-box {
+              width: 300px;
+              height: 300px;
+              overflow: hidden;
+              border-radius: 12px;
+              border: 1px solid rgba(196,149,106,0.2);
+            }
+            @media (max-width: 768px) {
+              .hp-ipl-banner { flex-direction: column; }
+              .hp-ipl-img-wrap { max-height: 200px; flex: none; }
+              .hp-ipl-img-overlay {
+                background: linear-gradient(to bottom, transparent 50%, var(--ink) 100%);
+              }
+              .hp-ipl-widget-wrap { flex: none; width: 100%; padding: 20px 16px; align-items: center; }
+              .hp-ipl-widget-label { align-self: center; }
+              .hp-ipl-widget-box { width: 300px; height: 300px; }
+            }
+          `}</style>
+
+          <div className="hp-ipl-img-wrap">
+            <img
+              src="https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?w=900&q=80"
+              alt="IPL Cricket"
+            />
+            <div className="hp-ipl-img-overlay" />
+          </div>
+
+          <div className="hp-ipl-widget-wrap">
+            <span className="hp-ipl-widget-label">Live IPL Scores</span>
+            <div className="hp-ipl-widget-box">
+              <IplScoreWidget />
+            </div>
+          </div>
+        </section>
+
+<section className="hp-features">
           <div className="hp-section-label">Why CricStream</div>
           <h2 className="hp-section-title">Built for fans who refuse to miss a moment</h2>
           <div className="hp-features-grid">
