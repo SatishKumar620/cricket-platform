@@ -86,7 +86,7 @@ export default function ScoresPage({ onBack }) {
     }
     try {
       const res = await fetch(
-        `https://api.cricketdata.org/cricket/v1/currentMatches?apikey=${API_KEY}&offset=0`
+        `https://corsproxy.io/?https://api.cricketdata.org/cricket/v1/currentMatches?apikey=${API_KEY}&offset=0`
       );
       const data = await res.json();
       if (data.status !== "success") throw new Error(data.reason || "API error");
