@@ -730,3 +730,78 @@ async def test_cricketdata():
             return {"status": r.status_code, "body": r.json()}
     except Exception as e:
         return {"error": str(e)}
+
+# ── SCRAPER IMPORTS ──
+import httpx
+from bs4 import BeautifulSoup
+
+SCRAPE_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept": "text/html,application/xhtml+xml",
+    "Referer": "https://www.google.com/",
+}
+
+CRICAPI_KEY = os.getenv("CRICAPI_KEY", "")
+
+@app.get("/api/live")
+async def live_scores():
+    try:
+        async with httpx.AsyncClient(headers=SCRAPE_HEADERS, timeout=8) as client:
+            r = await client.get("https://www.cricbuzz.com/cricket-match/live-scores")
+            if r.status_code == 200:
+                soup = BeautifulSoup(r.text, "lxml")
+                page = soup.find("div", class_="cb-col cb-col-100 cb-bg-white")
+                if page:
+                    matches = page.find_all("div", class_="cb-scr-wll-chvrn cb-lv-scrs-col")
+                    if matches:
+                        return {"source": "cricbuzz", "matches": [m.text.strip() for m in matches]}
+    except Exception:
+        pass
+    if CRICAPI_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=8) as client:
+                r = await client.get(f"https://api.cricapi.com/v1/currentMatches?apikey={CRICAPI_KEY}&offset=0")
+                data = r.json()
+                if data.get("status") == "success":
+                    return {"source": "cricapi", "matches": data.get("data", [])}
+        except Exception:
+            pass
+    return {"source": "none", "matches": [], "error": "All sources failed"}
+
+@app.get("/api/schedule")
+async def schedule():
+    try:
+        async with httpx.AsyncClient(headers=SCRAPE_HEADERS, timeout=8) as client:
+            r = await client.get("https://www.cricbuzz.com/cricket-schedule/upcoming-series/international")
+            if r.status_code == 200:
+                soup = BeautifulSoup(r.text, "lxml")
+                containers = soup.find_all("div", class_="cb-col-100 cb-col")
+                matches = []
+                for c in containers:
+                    date = c.find("div", class_="cb-lv-grn-strip text-bold")
+                    info = c.find("div", class_="cb-col-100 cb-col")
+                    if date and info:
+                        matches.append({"date": date.text.strip(), "details": info.text.strip()})
+                if matches:
+                    return {"source": "cricbuzz", "schedule": matches}
+    except Exception:
+        pass
+    return {"source": "none", "schedule": [], "error": "Scraping blocked"}
+
+@app.get("/api/player/{player_name}")
+async def player_stats(player_name: str):
+    if CRICAPI_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=8) as client:
+                r = await client.get(f"https://api.cricapi.com/v1/players?apikey={CRICAPI_KEY}&offset=0&search={player_name}")
+                data = r.json()
+                if data.get("status") == "success" and data.get("data"):
+                    player = data["data"][0]
+                    pid = player.get("id")
+                    r2 = await client.get(f"https://api.cricapi.com/v1/players_info?apikey={CRICAPI_KEY}&id={pid}")
+                    info = r2.json()
+                    return {"source": "cricapi", "player": info.get("data", player)}
+        except Exception:
+            pass
+    return {"source": "none", "player": {}, "error": "Player lookup failed"}
