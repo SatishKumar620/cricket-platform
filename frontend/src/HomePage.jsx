@@ -2,19 +2,13 @@ import { useEffect } from "react";
 
 function IplScoreWidget() {
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdorgapi.b-cdn.net/widgets/score.js";
-    script.async = true;
-    document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
+    if (document.querySelector('script[src*="cdorgapi"]')) return;
+    const s = document.createElement("script");
+    s.src = "https://cdorgapi.b-cdn.net/widgets/score.js";
+    s.async = true;
+    document.body.appendChild(s);
   }, []);
-  return (
-    <iframe
-      src="https://cdorgapi.b-cdn.net/widgets/score.html"
-      style={{ width: "300px", height: "300px", border: "none", borderRadius: "12px" }}
-      title="Live Cricket Scores"
-    />
-  );
+  return <div className="cs-score-widget" />;
 }
 
 export default function HomePage({ onEnter }) {
