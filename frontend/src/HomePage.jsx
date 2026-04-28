@@ -31,29 +31,26 @@ export default function HomePage({ onEnter }) {
           position: fixed; top: 0; left: 0; right: 0; z-index: 100;
           display: flex; align-items: center; justify-content: space-between;
           padding: 20px 48px;
-          background: rgba(250,247,242,0.85);
-          backdrop-filter: blur(12px);
+          background: rgba(0,0,0,0.55);
+          backdrop-filter: blur(14px);
           border-bottom: 1px solid rgba(196,149,106,0.15);
           animation: fadeDown 0.7s ease both;
         }
         .hp-logo {
           font-family: 'Playfair Display', serif;
           font-size: 22px; font-weight: 900;
-          letter-spacing: -0.5px; color: var(--ink);
+          letter-spacing: -0.5px; color: #fff;
         }
         .hp-logo span { color: var(--clay); }
-        .hp-nav-links {
-          display: flex; align-items: center; gap: 32px;
-        }
+        .hp-nav-links { display: flex; align-items: center; gap: 32px; }
         .hp-nav-link {
-          font-size: 13px; font-weight: 500; color: var(--muted);
+          font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.65);
           text-decoration: none; letter-spacing: 0.3px;
-          transition: color 0.2s;
-          background: none; border: none; cursor: pointer;
+          transition: color 0.2s; background: none; border: none; cursor: pointer;
         }
-        .hp-nav-link:hover { color: var(--ink); }
+        .hp-nav-link:hover { color: #fff; }
         .hp-nav-cta {
-          background: var(--ink); color: var(--cream);
+          background: var(--clay); color: #fff;
           padding: 10px 22px; border-radius: 100px;
           font-size: 13px; font-weight: 600;
           border: none; cursor: pointer;
@@ -66,8 +63,24 @@ export default function HomePage({ onEnter }) {
           display: flex; flex-direction: column;
           align-items: center; justify-content: center;
           padding: 120px 48px 80px;
-          position: relative;
-          overflow: hidden;
+          position: relative; overflow: hidden;
+          background: #0a0a08;
+        }
+        .hp-hero-bg {
+          position: absolute; inset: 0;
+          background-image: url('https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=1600&q=80');
+          background-size: cover; background-position: center 30%;
+          opacity: 0.38;
+          filter: saturate(0.7);
+        }
+        .hp-hero-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(
+            to bottom,
+            rgba(10,10,8,0.55) 0%,
+            rgba(10,10,8,0.2) 40%,
+            rgba(10,10,8,0.75) 100%
+          );
         }
 
         .hp-rings {
@@ -77,7 +90,7 @@ export default function HomePage({ onEnter }) {
         }
         .hp-ring {
           position: absolute; border-radius: 50%;
-          border: 1px solid rgba(196,149,106,0.12);
+          border: 1px solid rgba(196,149,106,0.15);
           animation: expandRing 6s ease-out infinite;
         }
         .hp-ring:nth-child(1) { width: 300px; height: 300px; animation-delay: 0s; }
@@ -86,61 +99,18 @@ export default function HomePage({ onEnter }) {
         .hp-ring:nth-child(4) { width: 960px; height: 960px; animation-delay: 3s; }
         .hp-ring:nth-child(5) { width: 1200px; height: 1200px; animation-delay: 4s; }
 
-        .hp-ball {
-          position: absolute;
-          width: 180px; height: 180px;
-          border-radius: 50%;
-          background: radial-gradient(circle at 35% 35%, #e05c4a, var(--red) 60%, #8b1a12);
-          box-shadow: inset -8px -8px 20px rgba(0,0,0,0.3), 0 20px 60px rgba(192,57,43,0.2);
-          top: 15%; right: 12%;
-          animation: floatBall 8s ease-in-out infinite;
-        }
-        .hp-ball::before {
-          content: '';
-          position: absolute; inset: 0; border-radius: 50%;
-          background:
-            radial-gradient(ellipse 3px 60% at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 100%),
-            radial-gradient(ellipse 60% 3px at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 100%);
-        }
-        .hp-ball::after {
-          content: '';
-          position: absolute; inset: 12px; border-radius: 50%;
-          border: 2px solid rgba(255,255,255,0.12);
-          border-left-color: transparent; border-right-color: transparent;
-          transform: rotate(30deg);
-        }
-
-        .hp-stumps {
-          position: absolute; bottom: 8%; left: 8%;
-          display: flex; gap: 6px; align-items: flex-end;
-          animation: fadeUp 1s 0.5s ease both;
-          opacity: 0.18;
-        }
-        .hp-stump {
-          width: 6px; border-radius: 3px 3px 0 0;
-          background: var(--clay);
-        }
-        .hp-stump:nth-child(1) { height: 80px; }
-        .hp-stump:nth-child(2) { height: 84px; }
-        .hp-stump:nth-child(3) { height: 80px; }
-        .hp-bail {
-          position: absolute; top: 0; left: -2px; right: -2px; height: 5px;
-          background: var(--clay); border-radius: 2px;
-        }
-
         .hp-eyebrow {
           display: inline-flex; align-items: center; gap: 8px;
-          background: rgba(196,149,106,0.12); border: 1px solid rgba(196,149,106,0.25);
+          background: rgba(196,149,106,0.15); border: 1px solid rgba(196,149,106,0.35);
           padding: 6px 16px; border-radius: 100px;
           font-size: 11px; font-weight: 600; color: var(--clay);
           letter-spacing: 2px; text-transform: uppercase;
-          margin-bottom: 28px;
+          margin-bottom: 28px; position: relative;
           animation: fadeUp 0.6s 0.2s ease both; opacity: 0;
         }
         .hp-eyebrow-dot {
           width: 6px; height: 6px; border-radius: 50%;
-          background: var(--red);
-          animation: livePulse 1.2s infinite;
+          background: var(--red); animation: livePulse 1.2s infinite;
         }
 
         .hp-headline {
@@ -148,40 +118,43 @@ export default function HomePage({ onEnter }) {
           font-size: clamp(48px, 7vw, 96px);
           font-weight: 900; line-height: 1.02;
           letter-spacing: -2px; text-align: center;
-          color: var(--ink);
+          color: #fff; position: relative;
           animation: fadeUp 0.7s 0.35s ease both; opacity: 0;
           max-width: 900px;
+          text-shadow: 0 4px 32px rgba(0,0,0,0.5);
         }
         .hp-headline em { font-style: italic; color: var(--clay); }
-        .hp-headline .hp-hl-green { color: var(--pitch); }
+        .hp-headline .hp-hl-green { color: #6fcf8e; }
 
         .hp-sub {
-          font-size: 17px; font-weight: 300; color: var(--muted);
+          font-size: 17px; font-weight: 300; color: rgba(255,255,255,0.7);
           text-align: center; max-width: 520px;
-          line-height: 1.7; margin-top: 24px;
+          line-height: 1.7; margin-top: 24px; position: relative;
           animation: fadeUp 0.7s 0.5s ease both; opacity: 0;
         }
 
         .hp-hero-actions {
-          display: flex; gap: 14px; margin-top: 44px;
+          display: flex; gap: 14px; margin-top: 44px; position: relative;
           animation: fadeUp 0.7s 0.65s ease both; opacity: 0;
         }
         .hp-btn-primary {
-          background: var(--ink); color: var(--cream);
+          background: var(--clay); color: #fff;
           padding: 16px 36px; border-radius: 100px;
           font-size: 14px; font-weight: 600;
           border: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
           transition: background 0.2s, transform 0.15s;
+          box-shadow: 0 8px 32px rgba(196,149,106,0.4);
         }
         .hp-btn-primary:hover { background: var(--pitch2); transform: translateY(-2px); }
         .hp-btn-secondary {
-          background: transparent; color: var(--ink);
+          background: rgba(255,255,255,0.1); color: #fff;
           padding: 16px 36px; border-radius: 100px;
           font-size: 14px; font-weight: 500;
-          border: 1.5px solid var(--sand); cursor: pointer;
-          transition: border-color 0.2s, transform 0.15s;
+          border: 1.5px solid rgba(255,255,255,0.25); cursor: pointer;
+          transition: border-color 0.2s, transform 0.15s, background 0.2s;
+          backdrop-filter: blur(8px);
         }
-        .hp-btn-secondary:hover { border-color: var(--clay); transform: translateY(-2px); }
+        .hp-btn-secondary:hover { border-color: var(--clay); transform: translateY(-2px); background: rgba(255,255,255,0.15); }
 
         .hp-scroll-hint {
           position: absolute; bottom: 40px;
@@ -194,7 +167,7 @@ export default function HomePage({ onEnter }) {
           animation: scrollPulse 2s ease-in-out infinite;
         }
         .hp-scroll-label {
-          font-size: 9px; letter-spacing: 3px; color: var(--muted);
+          font-size: 9px; letter-spacing: 3px; color: rgba(255,255,255,0.4);
           text-transform: uppercase;
         }
 
@@ -214,12 +187,9 @@ export default function HomePage({ onEnter }) {
         }
         .hp-ticker-dot {
           width: 6px; height: 6px; border-radius: 50%;
-          background: var(--red);
-          animation: livePulse 1.2s infinite;
+          background: var(--red); animation: livePulse 1.2s infinite;
         }
-        .hp-ticker-score {
-          color: var(--clay); font-weight: 600;
-        }
+        .hp-ticker-score { color: var(--clay); font-weight: 600; }
 
         .hp-features {
           padding: 100px 48px;
@@ -227,8 +197,7 @@ export default function HomePage({ onEnter }) {
         }
         .hp-section-label {
           font-size: 11px; font-weight: 600; color: var(--clay);
-          letter-spacing: 3px; text-transform: uppercase;
-          margin-bottom: 16px;
+          letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px;
         }
         .hp-section-title {
           font-family: 'Playfair Display', serif;
@@ -237,70 +206,89 @@ export default function HomePage({ onEnter }) {
           letter-spacing: -1px; color: var(--ink);
           max-width: 600px; margin-bottom: 60px;
         }
+
         .hp-features-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 2px; background: var(--sand);
-          border: 2px solid var(--sand); border-radius: 16px;
-          overflow: hidden;
+          display: grid; grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
         }
         .hp-feature-card {
-          background: var(--cream);
-          padding: 36px 32px;
-          transition: background 0.2s;
+          background: var(--cream); border-radius: 20px;
+          overflow: hidden; border: 1px solid var(--sand);
+          transition: transform 0.25s, box-shadow 0.25s;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.04);
         }
-        .hp-feature-card:hover { background: var(--warm); }
-        .hp-feature-icon {
-          font-size: 28px; margin-bottom: 16px;
+        .hp-feature-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 16px 48px rgba(0,0,0,0.10);
         }
+        .hp-feature-img {
+          width: 100%; height: 160px;
+          object-fit: cover; display: block;
+          filter: saturate(0.85);
+          transition: filter 0.3s;
+        }
+        .hp-feature-card:hover .hp-feature-img { filter: saturate(1.1); }
+        .hp-feature-body { padding: 24px; }
+        .hp-feature-icon { font-size: 24px; margin-bottom: 10px; }
         .hp-feature-name {
           font-size: 15px; font-weight: 700;
-          color: var(--ink); margin-bottom: 10px;
+          color: var(--ink); margin-bottom: 8px;
         }
         .hp-feature-desc {
-          font-size: 13px; color: var(--muted);
-          line-height: 1.65;
+          font-size: 13px; color: var(--muted); line-height: 1.65;
         }
 
         .hp-stats {
+          position: relative;
           display: grid; grid-template-columns: repeat(4, 1fr);
-          background: var(--ink); padding: 60px 48px;
-          max-width: 100%;
+          padding: 80px 48px; overflow: hidden;
+        }
+        .hp-stats-bg {
+          position: absolute; inset: 0;
+          background-image: url('https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1600&q=80');
+          background-size: cover; background-position: center;
+          filter: saturate(0.5) brightness(0.35);
+        }
+        .hp-stats-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(135deg, rgba(10,10,8,0.82) 0%, rgba(45,90,61,0.7) 100%);
         }
         .hp-stat {
-          text-align: center; padding: 20px;
-          border-right: 1px solid rgba(255,255,255,0.06);
+          position: relative; text-align: center; padding: 20px;
+          border-right: 1px solid rgba(255,255,255,0.08);
         }
         .hp-stat:last-child { border-right: none; }
         .hp-stat-num {
           font-family: 'Playfair Display', serif;
           font-size: clamp(40px, 5vw, 64px);
-          font-weight: 900; color: var(--cream);
-          line-height: 1;
+          font-weight: 900; color: #fff; line-height: 1;
         }
         .hp-stat-num span { color: var(--clay); }
         .hp-stat-label {
-          font-size: 11px; color: rgba(250,247,242,0.4);
-          letter-spacing: 2px; text-transform: uppercase;
-          margin-top: 8px;
+          font-size: 11px; color: rgba(255,255,255,0.45);
+          letter-spacing: 2px; text-transform: uppercase; margin-top: 8px;
         }
 
         .hp-preview {
-          padding: 100px 48px;
-          max-width: 1200px; margin: 0 auto;
+          position: relative;
+          padding: 100px 48px; overflow: hidden;
         }
-        .hp-preview-label { margin-bottom: 16px; }
+        .hp-preview-bg {
+          position: absolute; inset: 0;
+          background: linear-gradient(135deg, #0f1f15 0%, #1a1a18 100%);
+        }
+        .hp-preview-label { margin-bottom: 16px; position: relative; }
         .hp-preview-title {
           font-family: 'Playfair Display', serif;
           font-size: clamp(32px, 4vw, 52px);
           font-weight: 900; line-height: 1.1;
           letter-spacing: -1px; color: var(--cream);
-          margin-bottom: 48px;
+          margin-bottom: 48px; position: relative;
         }
         .hp-preview-title em { color: var(--clay); font-style: italic; }
         .hp-preview-layout {
           display: grid; grid-template-columns: 1fr 1.6fr;
-          gap: 24px;
+          gap: 24px; position: relative;
         }
 
         .hp-match-card {
@@ -316,8 +304,7 @@ export default function HomePage({ onEnter }) {
         }
         .hp-match-format {
           font-size: 9px; color: var(--clay);
-          letter-spacing: 2px; text-transform: uppercase;
-          margin-bottom: 6px;
+          letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px;
         }
         .hp-match-teams {
           font-family: 'Playfair Display', serif;
@@ -328,14 +315,9 @@ export default function HomePage({ onEnter }) {
           font-family: 'DM Mono', monospace;
           font-size: 13px; color: rgba(250,247,242,0.7);
         }
-        .hp-match-status {
-          font-size: 11px; color: var(--clay);
-          margin-top: 6px;
-        }
+        .hp-match-status { font-size: 11px; color: var(--clay); margin-top: 6px; }
 
-        .hp-commentary-feed {
-          display: flex; flex-direction: column; gap: 10px;
-        }
+        .hp-commentary-feed { display: flex; flex-direction: column; gap: 10px; }
         .hp-commentary-item {
           display: flex; gap: 14px; align-items: flex-start;
           padding: 14px 16px; border-radius: 12px;
@@ -352,30 +334,25 @@ export default function HomePage({ onEnter }) {
         .chip-6 { background: #0a2e18; color: #00e676; border: 1.5px solid #00e676; }
         .chip-W { background: #2e0a0a; color: #ff4d4f; border: 1.5px solid #ff4d4f; }
         .chip-4 { background: #eef4f0; color: #4a7c59; border: 1.5px solid #4a7c59; }
-        .chip-0 { background: #f0e8dc; color: #aaa09a; border: 1.5px solid #8a8578; }
-        .chip-1 { background: #f0e8dc; color: #6b6560; border: 1.5px solid #8a8578; }
+        .chip-0 { background: #2a2a28; color: #aaa09a; border: 1.5px solid #3a3a36; }
+        .chip-1 { background: #2a2a28; color: #6b6560; border: 1.5px solid #3a3a36; }
         .hp-commentary-meta {
           font-size: 9px; color: var(--clay);
           letter-spacing: 1px; margin-bottom: 4px;
         }
-        .hp-commentary-text {
-          font-size: 12px; color: rgba(250,247,242,0.75);
-          line-height: 1.6;
-        }
+        .hp-commentary-text { font-size: 12px; color: rgba(250,247,242,0.75); line-height: 1.6; }
 
         .hp-footer {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 32px 48px;
-          border-top: 1px solid rgba(255,255,255,0.08);
+          padding: 32px 48px; background: #0a0a08;
+          border-top: 1px solid rgba(255,255,255,0.06);
         }
         .hp-footer-logo {
           font-family: 'Playfair Display', serif;
           font-size: 18px; font-weight: 900; color: var(--cream);
         }
         .hp-footer-logo span { color: var(--clay); }
-        .hp-footer-text {
-          font-size: 12px; color: rgba(250,247,242,0.35);
-        }
+        .hp-footer-text { font-size: 12px; color: rgba(250,247,242,0.35); }
         .hp-footer-stack {
           font-size: 11px; color: rgba(250,247,242,0.25);
           font-family: 'DM Mono', monospace;
@@ -393,10 +370,6 @@ export default function HomePage({ onEnter }) {
           0%   { opacity: 0.6; transform: scale(0.3); }
           100% { opacity: 0;   transform: scale(1); }
         }
-        @keyframes floatBall {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50%       { transform: translateY(-24px) rotate(8deg); }
-        }
         @keyframes livePulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50%       { opacity: 0.4; transform: scale(0.8); }
@@ -409,15 +382,6 @@ export default function HomePage({ onEnter }) {
           from { transform: translateX(0); }
           to   { transform: translateX(-50%); }
         }
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateY(-8px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .hp-preview {
-          background: linear-gradient(135deg, #0f1f15 0%, #1a1a18 100%);
-          max-width: 100%; padding: 100px 48px;
-        }
 
         @media (max-width: 768px) {
           .hp-nav { padding: 16px 20px; }
@@ -425,7 +389,6 @@ export default function HomePage({ onEnter }) {
           .hp-features-grid { grid-template-columns: 1fr; }
           .hp-stats { grid-template-columns: repeat(2, 1fr); }
           .hp-hero { padding: 100px 20px 60px; }
-          .hp-ball { width: 100px; height: 100px; top: 10%; right: 5%; }
           .hp-features { padding: 60px 20px; }
           .hp-preview { padding: 60px 20px; }
           .hp-preview-layout { grid-template-columns: 1fr; }
@@ -446,19 +409,10 @@ export default function HomePage({ onEnter }) {
         </nav>
 
         <section className="hp-hero">
+          <div className="hp-hero-bg" />
+          <div className="hp-hero-overlay" />
           <div className="hp-rings">
             {[1,2,3,4,5].map(i => <div key={i} className="hp-ring" />)}
-          </div>
-
-          <div className="hp-ball" />
-
-          <div className="hp-stumps">
-            {[1,2,3].map(i => (
-              <div key={i} style={{ position: "relative" }}>
-                <div className="hp-stump" />
-                <div className="hp-bail" />
-              </div>
-            ))}
           </div>
 
           <div className="hp-eyebrow">
@@ -514,23 +468,28 @@ export default function HomePage({ onEnter }) {
           <h2 className="hp-section-title">Built for fans who refuse to miss a moment</h2>
           <div className="hp-features-grid">
             {[
-              { icon: "⚡", name: "Ball-by-Ball Live",        desc: "WebSocket-powered updates land in under 100ms. Every dot, every six, every wicket — in real time." },
-              { icon: "🎙️", name: "AI Commentary",            desc: "LLM-generated broadcast commentary that reads the game like a 20-year veteran. Powered by Groq + Mistral." },
-              { icon: "🌐", name: "18 Languages",             desc: "Hindi, Tamil, Bengali, Telugu and 14 more. Commentary auto-translates with cricket terms preserved." },
-              { icon: "🔊", name: "Voice Narration",          desc: "Kokoro TTS reads the commentary aloud. Choose your commentator voice — from authoritative to energetic." },
-              { icon: "📊", name: "Deep Scorecard",           desc: "Live batting/bowling stats, run rates, partnerships and ball history — all updating in real time." },
-              { icon: "🔄", name: "4-Source Fallback",        desc: "CricketData → CricAPI → Cricbuzz scraper → Mock. Your stream never breaks, even at 3 AM." },
+              { icon: "⚡", name: "Ball-by-Ball Live", desc: "WebSocket-powered updates land in under 100ms. Every dot, every six, every wicket — in real time.", img: "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?w=600&q=80" },
+              { icon: "🎙️", name: "AI Commentary", desc: "LLM-generated broadcast commentary that reads the game like a 20-year veteran. Powered by Groq + Mistral.", img: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=600&q=80" },
+              { icon: "🌐", name: "18 Languages", desc: "Hindi, Tamil, Bengali, Telugu and 14 more. Commentary auto-translates with cricket terms preserved.", img: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600&q=80" },
+              { icon: "🔊", name: "Voice Narration", desc: "Kokoro TTS reads the commentary aloud. Choose your commentator voice — from authoritative to energetic.", img: "https://images.unsplash.com/photo-1562077981-4d7eafd44932?w=600&q=80" },
+              { icon: "📊", name: "Deep Scorecard", desc: "Live batting/bowling stats, run rates, partnerships and ball history — all updating in real time.", img: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=80" },
+              { icon: "🔄", name: "4-Source Fallback", desc: "CricketData → CricAPI → Cricbuzz scraper → Mock. Your stream never breaks, even at 3 AM.", img: "https://images.unsplash.com/photo-1576633587382-13ddf37b1fc1?w=600&q=80" },
             ].map(f => (
               <div key={f.name} className="hp-feature-card">
-                <div className="hp-feature-icon">{f.icon}</div>
-                <div className="hp-feature-name">{f.name}</div>
-                <div className="hp-feature-desc">{f.desc}</div>
+                <img src={f.img} alt={f.name} className="hp-feature-img" />
+                <div className="hp-feature-body">
+                  <div className="hp-feature-icon">{f.icon}</div>
+                  <div className="hp-feature-name">{f.name}</div>
+                  <div className="hp-feature-desc">{f.desc}</div>
+                </div>
               </div>
             ))}
           </div>
         </section>
 
         <div className="hp-stats">
+          <div className="hp-stats-bg" />
+          <div className="hp-stats-overlay" />
           {[
             { num: "4",   suf: "×",  label: "Data Sources"  },
             { num: "18",  suf: "+",  label: "Languages"      },
@@ -545,6 +504,7 @@ export default function HomePage({ onEnter }) {
         </div>
 
         <section className="hp-preview">
+          <div className="hp-preview-bg" />
           <div className="hp-section-label hp-preview-label">Live Preview</div>
           <h2 className="hp-preview-title">See the <em>commentary</em> in action</h2>
           <div className="hp-preview-layout">
@@ -580,8 +540,8 @@ export default function HomePage({ onEnter }) {
               ))}
             </div>
           </div>
-          <div style={{ marginTop: 48, display: "flex", justifyContent: "center" }}>
-            <button className="hp-btn-primary" onClick={onEnter} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}>
+          <div style={{ marginTop: 48, display: "flex", justifyContent: "center", position: "relative" }}>
+            <button className="hp-btn-primary" onClick={onEnter}>
               Open Live Dashboard →
             </button>
           </div>
