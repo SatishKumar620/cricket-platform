@@ -805,3 +805,20 @@ async def player_stats(player_name: str):
         except Exception:
             pass
     return {"source": "none", "player": {}, "error": "Player lookup failed"}
+
+import logging
+logger = logging.getLogger(__name__)
+
+@app.get("/api/live-debug")
+async def live_debug():
+    try:
+        async with httpx.AsyncClient(headers=SCRAPE_HEADERS, timeout=10, follow_redirects=True) as client:
+            r = await client.get("https://www.cricbuzz.com/cricket-match/live-scores")
+            return {
+                "status_code": r.status_code,
+                "content_length": len(r.text),
+                "first_500_chars": r.text[:500],
+                "headers": dict(r.headers),
+            }
+    except Exception as e:
+        return {"error": str(e), "type": type(e).__name__}
