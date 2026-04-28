@@ -211,6 +211,103 @@ async function fetchLiveMatches(apiKey) {
   }
 }
 
+
+function YTSearch() {
+  const [query, setQuery] = useState("IPL 2025 live streaming");
+  const [src, setSrc] = useState("https://www.youtube.com/embed?listType=search&list=IPL+2025+live+streaming&autoplay=0");
+
+  const search = () => {
+    const encoded = encodeURIComponent(query);
+    setSrc(`https://www.youtube.com/embed?listType=search&list=${encoded}&autoplay=0`);
+  };
+
+  return (
+    <div>
+      <div className="yt-search-bar">
+        <span style={{ fontSize:16 }}>▶️</span>
+        <input
+          className="yt-search-input"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && search()}
+          placeholder="Search YouTube for live cricket..."
+        />
+        <button className="yt-search-btn" onClick={search}>Search</button>
+      </div>
+      <iframe
+        className="yt-iframe"
+        src={src}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        title="YouTube Cricket"
+      />
+    </div>
+  );
+}
+
+function LiveChat() {
+  const [messages, setMessages] = useState([
+    { id:1, user:"Rahul_11", text:"What a delivery by Bumrah 🔥", color:"#00e676" },
+    { id:2, user:"CricFan99", text:"Jadeja holding it together well", color:"#c4956a" },
+    { id:3, user:"MSD_era", text:"India winning this for sure 💪", color:"#faad14" },
+  ]);
+  const [input, setInput] = useState("");
+  const [username] = useState("Guest" + Math.floor(Math.random()*9000+1000));
+  const bottomRef = useRef(null);
+  const colors = ["#00e676","#c4956a","#faad14","#ff4d4f","#69b1ff","#b37feb"];
+  const myColor = colors[Math.floor(Math.random()*colors.length)];
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior:"smooth" });
+  }, [messages]);
+
+  const send = () => {
+    if (!input.trim()) return;
+    const newMsg = { id: Date.now(), user: username, text: input.trim(), color: myColor };
+    setMessages(prev => [...prev, newMsg].slice(-15));
+    setInput("");
+  };
+
+  return (
+    <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", borderTop:"1px solid #222220" }}>
+      <div style={{ padding:"10px 18px", borderBottom:"1px solid #222220", display:"flex", alignItems:"center", gap:8 }}>
+        <div style={{ width:6, height:6, borderRadius:"50%", background:"#ff4d4f", animation:"livePulse 1s infinite" }} />
+        <span style={{ fontSize:9, color:"#c4956a", letterSpacing:2, textTransform:"uppercase" }}>Live Chat</span>
+        <span style={{ fontSize:9, color:"#3a3a36", marginLeft:"auto" }}>last 15 msgs · no history</span>
+      </div>
+
+      <div style={{ flex:1, overflowY:"auto", padding:"10px 14px", display:"flex", flexDirection:"column", gap:6 }}>
+        {messages.map((m,i) => (
+          <div key={m.id} style={{ animation:"chatSlide 0.3s ease", fontSize:12, lineHeight:1.5 }}>
+            <span style={{ color:m.color, fontWeight:700, fontSize:11 }}>{m.user} </span>
+            <span style={{ color:"#c4b8a8" }}>{m.text}</span>
+          </div>
+        ))}
+        <div ref={bottomRef} />
+      </div>
+
+      <div style={{ padding:"10px 12px", borderTop:"1px solid #222220", display:"flex", gap:8 }}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key==="Enter" && send()}
+          placeholder="Say something..."
+          style={{
+            flex:1, background:"#1e1e1c", border:"1px solid #2a2a28",
+            borderRadius:8, padding:"8px 12px", color:"#faf7f2",
+            fontSize:12, fontFamily:"'DM Sans',sans-serif", outline:"none",
+          }}
+        />
+        <button onClick={send} style={{
+          background:"#c4956a", color:"#fff", border:"none",
+          borderRadius:8, padding:"8px 14px", fontSize:12,
+          fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif",
+        }}>→</button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [screen, setScreen] = useState("home");
   const [matches, setMatches] = useState(MOCK_MATCHES);
@@ -420,177 +517,169 @@ export default function App() {
         overflow: "hidden", minHeight: 0,
       }}>
 
-        {/* Left: Live score */}
-        <div style={{ padding: 20, overflowY: "auto", borderRight: "1px solid #f0e8dc" }}>
-          <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 2, marginBottom: 16,
-            textTransform: "uppercase" }}>Live Score</div>
+
+      {/* ── YouTube Search ── */}
+      <div style={{
+        gridColumn: "1", gridRow: "1",
+        borderBottom: "1px solid #f0e8dc",
+        background: "#0f0f0f",
+        display: "flex", flexDirection: "column",
+      }}>
+        <style>{`
+          @keyframes fadeSlideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+          @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(196,149,106,0.4); } 50% { box-shadow: 0 0 0 6px rgba(196,149,106,0); } }
+          @keyframes ballBounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+          @keyframes chatSlide { from { opacity:0; transform:translateX(12px); } to { opacity:1; transform:translateX(0); } }
+          .yt-search-bar { display:flex; align-items:center; gap:10px; padding:12px 16px; background:#1a1a1a; }
+          .yt-search-input { flex:1; background:#2a2a2a; border:1px solid #333; border-radius:8px; padding:8px 14px; color:#fff; font-size:13px; font-family:"DM Sans",sans-serif; outline:none; transition:border 0.2s; }
+          .yt-search-input:focus { border-color:#c4956a; }
+          .yt-search-btn { background:#c4956a; color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:12px; font-weight:600; cursor:pointer; font-family:"DM Sans",sans-serif; transition:background 0.2s; animation:pulseGlow 2s infinite; }
+          .yt-search-btn:hover { background:#2d5a3d; }
+          .yt-iframe { width:100%; height:240px; border:none; display:block; }
+        `}</style>
+        <YTSearch />
+      </div>
+
+      {/* ── Ball by Ball ── */}
+      <div style={{
+        gridColumn: "1", gridRow: "2",
+        padding: "14px 20px",
+        background: "#1a1a18",
+        borderBottom: "1px solid #2a2a28",
+      }}>
+        <div style={{ fontSize:9, color:"#c4956a", letterSpacing:2, textTransform:"uppercase", marginBottom:10 }}>
+          Ball by Ball · {activeMatch.subtitle}
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+          {activeMatch.ballHistory.map((b,i) => (
+            <BallDot key={i} val={b} fresh={i===0} />
+          ))}
+          <div style={{ marginLeft:8, display:"flex", gap:16 }}>
+            <div style={{ textAlign:"center" }}>
+              <div style={{ fontSize:9, color:"#8a8578", letterSpacing:1, textTransform:"uppercase" }}>CRR</div>
+              <div style={{ fontSize:18, fontFamily:"'JetBrains Mono',monospace", fontWeight:800, color:"#00e676" }}>{activeMatch.crr?.toFixed(2)}</div>
+            </div>
+            {activeMatch.rrr && <div style={{ textAlign:"center" }}>
+              <div style={{ fontSize:9, color:"#8a8578", letterSpacing:1, textTransform:"uppercase" }}>RRR</div>
+              <div style={{ fontSize:18, fontFamily:"'JetBrains Mono',monospace", fontWeight:800, color:activeMatch.rrr>10?"#ff4d4f":"#faad14" }}>{activeMatch.rrr?.toFixed(2)}</div>
+            </div>}
+            <div style={{ textAlign:"center" }}>
+              <div style={{ fontSize:9, color:"#8a8578", letterSpacing:1, textTransform:"uppercase" }}>Partnership</div>
+              <div style={{ fontSize:18, fontFamily:"'JetBrains Mono',monospace", fontWeight:800, color:"#c4956a" }}>{activeMatch.partnership.runs} <span style={{fontSize:11,color:"#8a8578"}}>({activeMatch.partnership.balls}b)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── AI Commentary ── */}
+      <div style={{
+        gridColumn: "1", gridRow: "3",
+        padding: "20px",
+        overflowY: "auto",
+        background: "#111110",
+      }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+          <div style={{ fontSize:9, color:"#c4956a", letterSpacing:2, textTransform:"uppercase" }}>AI Commentary</div>
+          <div style={{ fontSize:9, color:"#8a8578", fontFamily:"'JetBrains Mono',monospace" }}>
+            {LANGS.find(l=>l.code===activeLanguage)?.label} · {VOICES.find(v=>v.id===activeVoice)?.label}
+          </div>
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {commentary.length === 0 && (
+            <div style={{ fontSize:12, color:"#3a3a36", padding:"20px 0", fontStyle:"italic" }}>
+              Waiting for first ball event…
+            </div>
+          )}
+          {commentary.map((c,i) => (
+            <div key={c.id} style={{ animation: i===0 ? "fadeSlideIn 0.4s ease" : "none" }}>
+              <CommentaryBubble item={c} isNew={i===0} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Right sidebar: Scorecard + Live Chat ── */}
+      <div style={{
+        gridColumn: "2", gridRow: "1 / 4",
+        display:"flex", flexDirection:"column",
+        borderLeft: "1px solid #2a2a28",
+        background: "#161614",
+        overflow: "hidden",
+      }}>
+
+        {/* Scorecard top */}
+        <div style={{ padding:"16px 18px", borderBottom:"1px solid #222220", overflowY:"auto", maxHeight:"55%" }}>
+          <div style={{ fontSize:9, color:"#c4956a", letterSpacing:2, textTransform:"uppercase", marginBottom:14 }}>Scorecard</div>
 
           {/* Teams */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-            {[activeMatch.team1, activeMatch.team2].map((team, i) => (
+          <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:14 }}>
+            {[activeMatch.team1, activeMatch.team2].map((team,i) => (
               <div key={i} style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "14px 16px", borderRadius: 12,
-                background: i === 0 ? "#fff" : "#f5f0e8",
-                border: i === 0 ? "1.5px solid #e8d9c4" : "1px solid #f0e8dc",
+                display:"flex", alignItems:"center", justifyContent:"space-between",
+                padding:"10px 12px", borderRadius:10,
+                background: i===0 ? "#1e2e22" : "#1a1a18",
+                border: i===0 ? "1px solid #2d5a3d" : "1px solid #2a2a28",
+                animation: "fadeSlideIn 0.4s ease",
               }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 24 }}>{team.flag}</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#1a1a18" }}>{team.name}</span>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ fontSize:20 }}>{team.flag}</span>
+                  <span style={{ fontSize:13, fontWeight:700, color:"#faf7f2" }}>{team.name}</span>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 22, fontFamily: "'JetBrains Mono', monospace",
-                    fontWeight: 800, color: i === 0 ? "#4a7c59" : "#6b6560", lineHeight: 1 }}>
-                    {team.score}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#8a8578", marginTop: 6 }}>
-                    {typeof team.overs === "string" && team.overs.includes("bat") ? team.overs : `(${team.overs} overs)`}
-                  </div>
+                <div style={{ textAlign:"right" }}>
+                  <div style={{ fontSize:18, fontFamily:"'JetBrains Mono',monospace", fontWeight:800, color: i===0?"#00e676":"#8a8578" }}>{team.score}</div>
+                  <div style={{ fontSize:10, color:"#8a8578" }}>({team.overs})</div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Status bar */}
-          <div style={{
-            padding: "12px 16px", borderRadius: 10,
-            background: "#f5f0e8", border: "1px solid #e8d9c4",
-            fontSize: 12, color: "#3a3a36", fontWeight: 600, marginBottom: 20,
-          }}>
+          {/* Status */}
+          <div style={{ padding:"10px 12px", borderRadius:8, background:"#1e1e1c", border:"1px solid #2a2a28", fontSize:11, color:"#c4956a", fontWeight:600, marginBottom:14 }}>
             {activeMatch.status}
           </div>
 
-          {/* Run rates */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
-            {[
-              { label: "Current RR", val: activeMatch.crr?.toFixed(2), color: "#00e676" },
-              { label: "Required RR", val: activeMatch.rrr ? activeMatch.rrr.toFixed(2) : "—",
-                color: activeMatch.rrr > 10 ? "#ff4d4f" : activeMatch.rrr ? "#faad14" : "#aaa09a" },
-            ].map(item => (
-              <div key={item.label} style={{
-                padding: "14px 16px", borderRadius: 10,
-                background: "#fff", border: "1px solid #e8d9c4", textAlign: "center",
-              }}>
-                <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 2, marginBottom: 6,
-                  textTransform: "uppercase" }}>{item.label}</div>
-                <div style={{ fontSize: 28, fontFamily: "'JetBrains Mono', monospace",
-                  fontWeight: 800, color: item.color }}>{item.val}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Ball history */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 2, marginBottom: 10,
-              textTransform: "uppercase" }}>This Over</div>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {activeMatch.ballHistory.map((b, i) => (
-                <BallDot key={i} val={b} fresh={i === 0} />
-              ))}
-            </div>
-          </div>
-
-          {/* Partnership */}
-          <div style={{ padding: "12px 16px", borderRadius: 10, background: "#fff",
-            border: "1px solid #e8d9c4" }}>
-            <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 2, marginBottom: 6,
-              textTransform: "uppercase" }}>Partnership</div>
-            <span style={{ fontSize: 20, fontFamily: "'JetBrains Mono', monospace",
-              fontWeight: 800, color: "#1a1a18" }}>
-              {activeMatch.partnership.runs}
-            </span>
-            <span style={{ fontSize: 11, color: "#8a8578", marginLeft: 8 }}>
-              ({activeMatch.partnership.balls} balls)
-            </span>
-          </div>
-        </div>
-
-        {/* Right 1: Scorecard */}
-        <div style={{ padding: 20, overflowY: "auto", borderRight: "1px solid #f0e8dc",
-          background: "#faf7f2" }}>
-          <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 2, marginBottom: 16,
-            textTransform: "uppercase" }}>Scorecard</div>
-
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 1, marginBottom: 8,
-              textTransform: "uppercase" }}>Batting</div>
-            {[activeMatch.batter1, activeMatch.batter2].map((b, i) => (
-              <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid #f0e8dc" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: i === 0 ? "#1a1a18" : "#6b6560", fontWeight: i === 0 ? 700 : 400 }}>
-                    {i === 0 ? "⚡ " : ""}{b.name}
+          {/* Batting */}
+          <div style={{ marginBottom:12 }}>
+            <div style={{ fontSize:9, color:"#8a8578", letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>Batting</div>
+            {[activeMatch.batter1, activeMatch.batter2].map((b,i) => (
+              <div key={i} style={{ padding:"8px 0", borderBottom:"1px solid #222220" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                  <span style={{ fontSize:12, color: i===0?"#faf7f2":"#8a8578", fontWeight: i===0?700:400 }}>
+                    {i===0 ? "⚡ " : ""}{b.name}
                   </span>
-                  <span style={{ fontSize: 14, fontFamily: "'JetBrains Mono', monospace",
-                    fontWeight: 900, color: i === 0 ? "#4a7c59" : "#8a8578" }}>{b.runs}</span>
+                  <span style={{ fontSize:14, fontFamily:"'JetBrains Mono',monospace", fontWeight:900, color: i===0?"#00e676":"#6b6560" }}>{b.runs}</span>
                 </div>
-                <div style={{ display: "flex", gap: 12, fontSize: 10, color: "#8a8578" }}>
+                <div style={{ display:"flex", gap:10, fontSize:10, color:"#6b6560" }}>
                   <span>{b.balls}b</span>
-                  <span style={{ color: b.sr > 150 ? "#00e676" : b.sr > 80 ? "#faad14" : "#ff4d4f" }}>
-                    SR {b.sr}
-                  </span>
-                  <span>{b.fours}×4</span>
-                  <span>{b.sixes}×6</span>
+                  <span style={{ color: b.sr>150?"#00e676":b.sr>80?"#faad14":"#ff4d4f" }}>SR {b.sr}</span>
+                  <span>{b.fours}×4</span><span>{b.sixes}×6</span>
                 </div>
               </div>
             ))}
           </div>
 
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 1, marginBottom: 8,
-              textTransform: "uppercase" }}>Bowling</div>
-            <div style={{ padding: "10px 0" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                <span style={{ fontSize: 12, color: "#1a1a18", fontWeight: 700 }}>
-                  {activeMatch.bowler.name}
+          {/* Bowling */}
+          <div>
+            <div style={{ fontSize:9, color:"#8a8578", letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>Bowling</div>
+            <div style={{ padding:"8px 0" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                <span style={{ fontSize:12, color:"#faf7f2", fontWeight:700 }}>{activeMatch.bowler.name}</span>
+                <span style={{ fontSize:14, fontFamily:"'JetBrains Mono',monospace", fontWeight:900, color:"#ff4d4f" }}>
+                  {activeMatch.bowler.wkts}/<span style={{color:"#6b6560"}}>{activeMatch.bowler.runs}</span>
                 </span>
-                <span style={{ fontSize: 14, fontFamily: "'JetBrains Mono', monospace",
-                  fontWeight: 900, color: "#ff4d4f" }}>{activeMatch.bowler.wkts}/<span style={{color:"#6b6560"}}>{activeMatch.bowler.runs}</span></span>
               </div>
-              <div style={{ display: "flex", gap: 12, fontSize: 10, color: "#8a8578" }}>
+              <div style={{ display:"flex", gap:10, fontSize:10, color:"#6b6560" }}>
                 <span>{activeMatch.bowler.overs} ov</span>
                 <span>Econ {activeMatch.bowler.econ}</span>
               </div>
             </div>
           </div>
-
-          <div style={{ padding: "12px", background: "#f5ede0", borderRadius: 10,
-            border: "1px solid #f0e8dc", fontSize: 9, color: "#c4b8a8",
-            fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.8 }}>
-            <div style={{ color: "#4a7c5944", marginBottom: 4 }}>TECH STACK</div>
-            FastAPI + Redis pub/sub<br />
-            Kokoro-82M TTS (local)<br />
-            Mistral / Groq LLM<br />
-            React + Vite frontend<br />
-            LibreTranslate (18 langs)<br />
-            WebSocket streaming
-          </div>
         </div>
 
-        {/* Right 2: Commentary feed */}
-        <div style={{ padding: 20, overflowY: "auto", background: "#f8f4ef" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <div style={{ fontSize: 9, color: "#8a8578", letterSpacing: 2, textTransform: "uppercase" }}>
-              AI Commentary
-            </div>
-            <div style={{ fontSize: 9, color: "#8a8578", fontFamily: "'JetBrains Mono', monospace" }}>
-              {LANGS.find(l => l.code === activeLanguage)?.label} · {VOICES.find(v => v.id === activeVoice)?.label}
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {commentary.length === 0 && (
-              <div style={{ fontSize: 12, color: "#c4b8a8", padding: "20px 0" }}>
-                Waiting for first ball event…
-              </div>
-            )}
-            {commentary.map((c, i) => (
-              <div key={c.id} style={{ animation: i === 0 ? "slideIn 0.3s ease" : "none" }}>
-                <CommentaryBubble item={c} isNew={i === 0} />
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Live Chat */}
+        <LiveChat />
       </div>
+
     </div>
   );
 }
