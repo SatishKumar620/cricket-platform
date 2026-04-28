@@ -1,3 +1,16 @@
+import { useEffect } from "react";
+
+function IplScoreWidget() {
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://cdorgapi.b-cdn.net/widgets/score.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => { document.body.removeChild(script); };
+  }, []);
+  return <div id="cric-score-widget" style={{ width: "300px", height: "300px" }} />;
+}
+
 export default function HomePage({ onEnter }) {
   return (
     <>
