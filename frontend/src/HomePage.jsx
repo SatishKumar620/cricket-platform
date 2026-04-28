@@ -1,14 +1,12 @@
-import { useEffect } from "react";
-
 function IplScoreWidget() {
-  useEffect(() => {
-    if (document.querySelector('script[src*="cdorgapi"]')) return;
-    const s = document.createElement("script");
-    s.src = "https://cdorgapi.b-cdn.net/widgets/score.js";
-    s.async = true;
-    document.body.appendChild(s);
-  }, []);
-  return <div className="cs-score-widget" />;
+  return (
+    <iframe
+      src="/widget.html"
+      style={{ width: "300px", height: "300px", border: "none", borderRadius: "12px", display: "block" }}
+      title="Live Cricket Scores"
+      scrolling="no"
+    />
+  );
 }
 
 export default function HomePage({ onEnter }) {
