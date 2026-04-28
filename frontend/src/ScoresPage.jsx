@@ -1,12 +1,37 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function ScoresPage({ onBack }) {
+  const containerRef = useRef(null);
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://cdorgapi.b-cdn.net/widgets/vmatchlist.js";
     script.async = true;
     document.body.appendChild(script);
-    return () => document.body.removeChild(script);
+
+    // Scale widget to fill container width
+    const scaleWidget = () => {
+      const widget = document.querySelector("#vmatchlist-widget iframe, #vmatchlist-widget > div");
+      if (widget && containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        const widgetWidth = widget.offsetWidth || 250;
+        const scale = containerWidth / widgetWidth;
+        widget.style.transform = `scale(${scale})`;
+        widget.style.transformOrigin = "top left";
+        containerRef.current.style.height = `${(widget.offsetHeight || 600) * scale}px`;
+      }
+    };
+
+    // Try scaling after widget loads
+    const timer = setInterval(scaleWidget, 500);
+    setTimeout(() => clearInterval(timer), 10000);
+    window.addEventListener("resize", scaleWidget);
+
+    return () => {
+      document.body.removeChild(script);
+      clearInterval(timer);
+      window.removeEventListener("resize", scaleWidget);
+    };
   }, []);
 
   return (
@@ -22,8 +47,8 @@ export default function ScoresPage({ onBack }) {
       </div>
 
       {/* Widget */}
-      <div style={{ padding: "16px", display: "flex", justifyContent: "center" }}>
-        <div id="vmatchlist-widget"></div>
+      <div ref={containerRef} style={{ width: "100%", overflow: "hidden", padding: "0", marginTop: 0 }}>
+        <div id="vmatchlist-widget" style={{ transformOrigin: "top left" }} />
       </div>
     </div>
   );
