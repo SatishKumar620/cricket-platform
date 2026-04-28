@@ -681,6 +681,8 @@ export default function App() {
         <LiveChat />
       </div>
 
+      </div>
     </div>
+  </div>
   );
 }
