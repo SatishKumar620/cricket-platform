@@ -822,3 +822,106 @@ async def live_debug():
             }
     except Exception as e:
         return {"error": str(e), "type": type(e).__name__}
+
+# ── ESPN CRICINFO FREE API ──
+ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/cricket"
+ESPN_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Accept": "application/json",
+    "Origin": "https://www.espncricinfo.com",
+    "Referer": "https://www.espncricinfo.com/",
+}
+
+# League IDs
+LEAGUES = {
+    "ipl": "8676",
+    "international": "8040",
+    "bbl": "8644",
+    "t20_wc": "8551",
+}
+
+@app.get("/api/espn/live")
+async def espn_live(league: str = "ipl"):
+    league_id = LEAGUES.get(league, "8676")
+    try:
+        async with httpx.AsyncClient(headers=ESPN_HEADERS, timeout=10) as client:
+            r = await client.get(f"{ESPN_BASE}/{league_id}/scoreboard")
+            if r.status_code != 200:
+                return {"error": f"ESPN returned {r.status_code}"}
+            data = r.json()
+            events = data.get("events", [])
+            matches = []
+            for e in events:
+                comp = e.get("competitions", [{}])[0]
+                competitors = comp.get("competitors", [])
+                team1 = competitors[0] if len(competitors) > 0 else {}
+                team2 = competitors[1] if len(competitors) > 1 else {}
+                matches.append({
+                    "id": e.get("id"),
+                    "name": e.get("name"),
+                    "status": e.get("status", {}).get("type", {}).get("description"),
+                    "venue": comp.get("venue", {}).get("fullName"),
+                    "team1": {
+                        "name": team1.get("team", {}).get("displayName"),
+                        "score": team1.get("score"),
+                        "winner": team1.get("winner", False),
+                    },
+                    "team2": {
+                        "name": team2.get("team", {}).get("displayName"),
+                        "score": team2.get("score"),
+                        "winner": team2.get("winner", False),
+                    },
+                })
+            return {"source": "espn", "league": league, "matches": matches}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/api/espn/schedule")
+async def espn_schedule(league: str = "ipl"):
+    league_id = LEAGUES.get(league, "8676")
+    try:
+        async with httpx.AsyncClient(headers=ESPN_HEADERS, timeout=10) as client:
+            r = await client.get(f"{ESPN_BASE}/{league_id}/schedule")
+            if r.status_code != 200:
+                return {"error": f"ESPN returned {r.status_code}"}
+            data = r.json()
+            events = data.get("events", [])
+            schedule = []
+            for e in events:
+                schedule.append({
+                    "id": e.get("id"),
+                    "name": e.get("name"),
+                    "date": e.get("date"),
+                    "status": e.get("status", {}).get("type", {}).get("description"),
+                    "venue": e.get("competitions", [{}])[0].get("venue", {}).get("fullName"),
+                })
+            return {"source": "espn", "league": league, "schedule": schedule}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/api/espn/standings")
+async def espn_standings(league: str = "ipl"):
+    league_id = LEAGUES.get(league, "8676")
+    try:
+        async with httpx.AsyncClient(headers=ESPN_HEADERS, timeout=10) as client:
+            r = await client.get(f"{ESPN_BASE}/{league_id}/standings")
+            if r.status_code != 200:
+                return {"error": f"ESPN returned {r.status_code}"}
+            data = r.json()
+            standings = []
+            for group in data.get("standings", {}).get("entries", []):
+                team = group.get("team", {})
+                stats = {s["name"]: s["displayValue"] for s in group.get("stats", [])}
+                standings.append({
+                    "team": team.get("displayName"),
+                    "played": stats.get("gamesPlayed"),
+                    "wins": stats.get("wins"),
+                    "losses": stats.get("losses"),
+                    "points": stats.get("points"),
+                    "nrr": stats.get("nrr"),
+                })
+            return {"source": "espn", "league": league, "standings": standings}
+    except Exception as e:
+        return {"error": str(e)}
