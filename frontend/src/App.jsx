@@ -238,7 +238,7 @@ function YTSearch() {
         className="yt-iframe"
         src={src}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
+        allowFullScreen={true}
         title="YouTube Cricket"
       />
     </div>
