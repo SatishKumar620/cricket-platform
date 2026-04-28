@@ -401,7 +401,7 @@ export default function HomePage({ onEnter }) {
         <nav className="hp-nav">
           <div className="hp-logo">Cric<span>Stream</span></div>
           <div className="hp-nav-links">
-            <button className="hp-nav-link">Live Scores</button>
+            <button className="hp-nav-link" onClick={() => onEnter("scores")}>Live Scores</button>
             <button className="hp-nav-link">Commentary</button>
             <button className="hp-nav-link">Stats</button>
             <button className="hp-nav-cta" onClick={onEnter}>Watch Live →</button>
