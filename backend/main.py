@@ -715,3 +715,18 @@ async def source_status():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+@app.get("/api/test-cricketdata")
+async def test_cricketdata():
+    """Test if Render can reach cricketdata.org API."""
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(
+                "https://api.cricketdata.org/api/currentMatches",
+                params={"apikey": CRICKETDATA_KEY, "offset": 0}
+            )
+            return {"status": r.status_code, "body": r.json()}
+    except Exception as e:
+        return {"error": str(e)}
