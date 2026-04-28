@@ -8,7 +8,13 @@ function IplScoreWidget() {
     document.body.appendChild(script);
     return () => { document.body.removeChild(script); };
   }, []);
-  return <div id="cric-score-widget" style={{ width: "300px", height: "300px" }} />;
+  return (
+    <iframe
+      src="https://cdorgapi.b-cdn.net/widgets/score.html"
+      style={{ width: "300px", height: "300px", border: "none", borderRadius: "12px" }}
+      title="Live Cricket Scores"
+    />
+  );
 }
 
 export default function HomePage({ onEnter }) {
