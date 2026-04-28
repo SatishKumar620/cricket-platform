@@ -10,36 +10,37 @@ const fetchAPI = async (path) => {
   return res.json();
 };
 
-// RSS via allorigins proxy — no API key needed
-const RSS_PROXY = "https://api.allorigins.win/get?url=";
-const CRICKET_RSS = "https://feeds.bbci.co.uk/sport/cricket/rss.xml";
-
 async function fetchCricketNews() {
-  try {
-    const res = await fetch(RSS_PROXY + encodeURIComponent(CRICKET_RSS));
-    const data = await res.json();
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(data.contents, "text/xml");
-    const items = [...xml.querySelectorAll("item")].slice(0, 10);
-    return items.map((item) => ({
-      title: item.querySelector("title")?.textContent || "",
-      desc: item.querySelector("description")?.textContent?.replace(/<[^>]+>/g, "") || "",
-      link: item.querySelector("link")?.textContent || "#",
-      date: item.querySelector("pubDate")?.textContent || "",
-    }));
-  } catch (e) {
-    return [];
+  const FEEDS = [
+    "https://api.rss2json.com/v1/api.json?rss_url=https://feeds.bbci.co.uk/sport/cricket/rss.xml",
+    "https://api.rss2json.com/v1/api.json?rss_url=https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
+  ];
+  for (const url of FEEDS) {
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status === "ok" && data.items?.length) {
+        return data.items.slice(0, 10).map(item => ({
+          title: item.title || "",
+          desc: item.description?.replace(/<[^>]+>/g, "") || "",
+          link: item.link || "#",
+          date: item.pubDate || "",
+          image: item.thumbnail || item.enclosure?.link || "",
+        }));
+      }
+    } catch (e) {}
   }
+  return [];
 }
 
 // Unsplash cricket images — totally free, no key
 const NEWS_IMAGES = [
-  "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?w=600&q=80",
-  "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=600&q=80",
-  "https://images.unsplash.com/photo-1540747913346-19212a4b423b?w=600&q=80",
-  "https://images.unsplash.com/photo-1593766788306-28561086694e?w=600&q=80",
-  "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=600&q=80",
-  "https://images.unsplash.com/photo-1589801258579-18e091f4ca26?w=600&q=80",
+  "https://images.pexels.com/photos/3628912/pexels-photo-3628912.jpeg?w=600",
+  "https://images.pexels.com/photos/3657154/pexels-photo-3657154.jpeg?w=600",
+  "https://images.pexels.com/photos/3628920/pexels-photo-3628920.jpeg?w=600",
+  "https://images.pexels.com/photos/3657156/pexels-photo-3657156.jpeg?w=600",
+  "https://images.pexels.com/photos/3628916/pexels-photo-3628916.jpeg?w=600",
+  "https://images.pexels.com/photos/3657160/pexels-photo-3657160.jpeg?w=600",
 ];
 
 const HERO_IMG = "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?w=900&q=80";
@@ -675,7 +676,7 @@ function NewsTab() {
       {/* Featured article */}
       <div style={{ borderRadius: 16, overflow: "hidden", marginBottom: 16, position: "relative", cursor: "pointer" }}
         onClick={() => window.open(featured.link, "_blank")}>
-        <img src={NEWS_IMAGES[0]} alt="" style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} />
+        <img src={featured.image || NEWS_IMAGES[0]} alt="" style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} onError={e => e.target.src=NEWS_IMAGES[0]} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,15,25,.95) 40%, transparent)" }} />
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 16px 14px" }}>
           <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 2, color: "#c4956a", marginBottom: 6 }}>BBC SPORT · FEATURED</div>
