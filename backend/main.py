@@ -925,3 +925,30 @@ async def espn_standings(league: str = "ipl"):
             return {"source": "espn", "league": league, "standings": standings}
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/api/espn/find-ipl")
+async def find_ipl():
+    # Search ESPN for IPL league ID
+    try:
+        async with httpx.AsyncClient(headers=ESPN_HEADERS, timeout=10) as client:
+            r = await client.get("https://site.api.espn.com/apis/site/v2/sports/cricket/leagues")
+            return {"status": r.status_code, "data": r.json()}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/api/espn/test-ids")
+async def test_ids():
+    # Test multiple known IPL IDs
+    ids_to_test = ["8676", "8040", "8271", "8655", "8700", "8800", "8900", "9000"]
+    results = {}
+    async with httpx.AsyncClient(headers=ESPN_HEADERS, timeout=10) as client:
+        for lid in ids_to_test:
+            try:
+                r = await client.get(f"https://site.api.espn.com/apis/site/v2/sports/cricket/{lid}/scoreboard")
+                data = r.json()
+                name = data.get("leagues", [{}])[0].get("name", "unknown")
+                count = len(data.get("events", []))
+                results[lid] = {"status": r.status_code, "league": name, "events": count}
+            except Exception as e:
+                results[lid] = {"error": str(e)}
+    return results
