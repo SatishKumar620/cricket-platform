@@ -1,0 +1,40 @@
+# Render.com deployment config
+# Deploy: https://render.com → New → Blueprint → connect GitHub repo
+
+services:
+
+  # ── FastAPI Backend ────────────────────────────────────────────────────────
+  - type: web
+    name: cricketstream-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
+    plan: free
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          name: cricketstream-redis
+          type: redis
+          property: connectionString
+      - key: LLM_PROVIDER
+        value: groq
+      - key: TTS_PROVIDER
+        value: elevenlabs
+      - key: GROQ_API_KEY
+        sync: false       # fill in Render dashboard
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: CRICKETDATA_KEY
+        sync: false
+      - key: CRICAPI_KEY
+        sync: false
+      - key: KOKORO_URL
+        value: ""         # no local Kokoro on Render — uses ElevenLabs
+    healthCheckPath: /api/health
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  - type: redis
+    name: cricketstream-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru

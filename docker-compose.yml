@@ -1,0 +1,91 @@
+version: "3.9"
+
+services:
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: always
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Kokoro TTS (local, free, CPU) ──────────────────────────────────────────
+  kokoro:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:v0.2.2
+    ports:
+      - "8880:8880"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8880/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s   # Kokoro takes time to load model
+
+  # ── FastAPI Backend ────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Override localhost URLs with Docker service names
+      - REDIS_URL=redis://redis:6379
+      - KOKORO_URL=http://kokoro:8880
+      # LLM_BASE_URL only needed if running Ollama in Docker
+      # - LLM_BASE_URL=http://ollama:11434
+    depends_on:
+      redis:
+        condition: service_healthy
+      kokoro:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ./backend:/app    # remove this line in production for faster startup
+
+  # ── React Frontend (Vite dev server) ───────────────────────────────────────
+  # NOTE: Browser connects to backend via HOST machine ports (localhost:8000)
+  #       NOT via Docker internal network — that's why we use localhost below
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules   # cache node_modules in volume
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      # Browser connects to backend on host machine — use localhost not 'backend'
+      - VITE_WS_SCORES=ws://localhost:8000/ws/scores
+      - VITE_WS_AUDIO=ws://localhost:8000/tts/ws/audio
+      - VITE_API_BASE=http://localhost:8000
+    depends_on:
+      - backend
+
+  # ── Ollama (optional — only needed if LLM_PROVIDER=ollama) ────────────────
+  # Uncomment to run Mistral locally via Docker
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama-data:/root/.ollama
+  #   restart: always
+  #   # After starting: docker exec -it <container> ollama pull mistral
+
+volumes:
+  redis-data:
+  frontend-node-modules:
+  # ollama-data:
