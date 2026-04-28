@@ -429,6 +429,15 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: #e8d9c4; border-radius: 2px; }
         @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
         @keyframes livePulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.8); } }
+        @keyframes fadeSlideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(196,149,106,0.4); } 50% { box-shadow: 0 0 0 6px rgba(196,149,106,0); } }
+        @keyframes chatSlide { from { opacity:0; transform:translateX(12px); } to { opacity:1; transform:translateX(0); } }
+        .yt-search-bar { display:flex; align-items:center; gap:10px; padding:12px 16px; background:#1a1a1a; }
+        .yt-search-input { flex:1; background:#2a2a2a; border:1px solid #333; border-radius:8px; padding:8px 14px; color:#fff; font-size:13px; font-family:"DM Sans",sans-serif; outline:none; transition:border 0.2s; }
+        .yt-search-input:focus { border-color:#c4956a; }
+        .yt-search-btn { background:#c4956a; color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:12px; font-weight:600; cursor:pointer; font-family:"DM Sans",sans-serif; transition:background 0.2s; }
+        .yt-search-btn:hover { background:#2d5a3d; }
+        .yt-iframe { width:100%; height:240px; border:none; display:block; }
       `}</style>
 
       {/* Header */}
@@ -526,18 +535,6 @@ export default function App() {
         background: "#0f0f0f",
         display: "flex", flexDirection: "column",
       }}>
-        <style>{`
-          @keyframes fadeSlideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-          @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(196,149,106,0.4); } 50% { box-shadow: 0 0 0 6px rgba(196,149,106,0); } }
-          @keyframes ballBounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
-          @keyframes chatSlide { from { opacity:0; transform:translateX(12px); } to { opacity:1; transform:translateX(0); } }
-          .yt-search-bar { display:flex; align-items:center; gap:10px; padding:12px 16px; background:#1a1a1a; }
-          .yt-search-input { flex:1; background:#2a2a2a; border:1px solid #333; border-radius:8px; padding:8px 14px; color:#fff; font-size:13px; font-family:"DM Sans",sans-serif; outline:none; transition:border 0.2s; }
-          .yt-search-input:focus { border-color:#c4956a; }
-          .yt-search-btn { background:#c4956a; color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:12px; font-weight:600; cursor:pointer; font-family:"DM Sans",sans-serif; transition:background 0.2s; animation:pulseGlow 2s infinite; }
-          .yt-search-btn:hover { background:#2d5a3d; }
-          .yt-iframe { width:100%; height:240px; border:none; display:block; }
-        `}</style>
         <YTSearch />
       </div>
 
