@@ -302,7 +302,7 @@ function LiveChat() {
           background:"#c4956a", color:"#fff", border:"none",
           borderRadius:8, padding:"8px 14px", fontSize:12,
           fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif",
-        }}>→</button>
+        }}>Send</button>
       </div>
     </div>
   );
