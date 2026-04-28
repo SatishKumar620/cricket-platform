@@ -4,10 +4,16 @@ const RAPID_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
 const HOST = "cricbuzz-cricket.p.rapidapi.com";
 
 const fetchAPI = async (path) => {
-  const res = await fetch(`https://${HOST}${path}`, {
-    headers: { "x-rapidapi-key": RAPID_KEY, "x-rapidapi-host": HOST },
-  });
-  return res.json();
+  try {
+    if (!RAPID_KEY) throw new Error("No API key");
+    const res = await fetch(`https://${HOST}${path}`, {
+      headers: { "x-rapidapi-key": RAPID_KEY, "x-rapidapi-host": HOST },
+    });
+    return res.json();
+  } catch (e) {
+    console.warn("fetchAPI error:", e);
+    return {};
+  }
 };
 
 // RSS via allorigins proxy — no API key needed
