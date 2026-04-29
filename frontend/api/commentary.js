@@ -10,18 +10,25 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192",
-        messages: [{
-          role: "user",
-          content: `You are an exciting cricket commentator. Generate 2 sentences of live commentary in ${language || "English"} for this ball: "${ball}" in match "${match}". Be energetic and natural.`
-        }],
-        max_tokens: 100
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          {
+            role: "system",
+            content: `You are an energetic cricket commentator. Always respond with exactly 2 exciting sentences of commentary in ${language || "English"}. No extra text, just the commentary.`
+          },
+          {
+            role: "user",
+            content: `Ball result: ${ball}. Match: ${match}. Give live commentary now.`
+          }
+        ],
+        max_tokens: 150,
+        temperature: 0.9
       })
     });
     const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || "";
+    const text = data.choices?.[0]?.message?.content || "Great delivery!";
     res.status(200).json({ commentary: text });
   } catch(err) {
-    res.status(500).json({ error: "Commentary failed" });
+    res.status(500).json({ error: err.message });
   }
 }
