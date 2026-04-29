@@ -173,48 +173,78 @@ function CommentaryBubble({ item, isNew }) {
 }
 
 function YTSearch() {
-  const [query, setQuery] = useState("IPL 2025 live streaming");
-  const [src, setSrc] = useState("https://www.youtube.com/embed/tNa6ORITpKk");
+  const [query, setQuery] = useState("IPL cricket live");
+  const [results, setResults] = useState([]);
+  const [activeVideo, setActiveVideo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const doSearch = () => {
-    const encoded = encodeURIComponent(query);
-    setSrc("https://www.youtube.com/embed?listType=search&list=" + encoded + "&autoplay=1");
+  const doSearch = async () => {
+    setLoading(true);
+    setActiveVideo(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/search?q=" + encodeURIComponent(query));
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setResults(data.results || []);
+      if ((data.results || []).length === 0) setError("No live streams found");
+    } catch(e) {
+      setError("Search failed: " + e.message);
+      setResults([]);
+    }
+    setLoading(false);
   };
 
+  useEffect(() => { doSearch(); }, []);
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f0f0f0" }}>
-        <span style={{ fontSize: 14 }}>▶</span>
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", background:"#fff" }}>
+      <div style={{ display:"flex", gap:8, padding:"10px 12px", borderBottom:"1px solid #e8e8e8", background:"#fafafa" }}>
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === "Enter" && doSearch()}
-          placeholder="Search YouTube for live cricket..."
-          style={{
-            flex: 1, background: "#e8e8e8", border: "1px solid #333",
-            borderRadius: 8, padding: "7px 12px", color: "#fff",
-            fontSize: 12, fontFamily: "'DM Sans', sans-serif", outline: "none",
-          }}
+          placeholder="Search live cricket on YouTube..."
+          style={{ flex:1, background:"#f0f0f0", border:"1px solid #e0e0e0", borderRadius:8, padding:"7px 12px", color:"#1a1a18", fontSize:12, fontFamily:"DM Sans,sans-serif", outline:"none" }}
         />
-        <button
-          onClick={doSearch}
-          style={{
-            background: "#c4956a", color: "#fff", border: "none",
-            borderRadius: 8, padding: "7px 14px", fontSize: 12,
-            fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-          }}
-        >Search</button>
+        <button onClick={doSearch} style={{ background:"#ff0000", color:"#fff", border:"none", borderRadius:8, padding:"7px 16px", fontSize:12, fontWeight:600, cursor:"pointer" }}>
+          {loading ? "..." : "Search"}
+        </button>
       </div>
-      <iframe
-        src={src}
-        style={{ flex: 1, width: "100%", border: "none", display: "block", minHeight: 220 }}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen={true}
-        title="YouTube Cricket"
-      />
+      {activeVideo ? (
+        <div style={{ display:"flex", flexDirection:"column" }}>
+          <iframe
+            src={"https://www.youtube.com/embed/" + activeVideo + "?autoplay=1"}
+            style={{ width:"100%", height:220, border:"none" }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+            allowFullScreen={true}
+          />
+          <button onClick={() => setActiveVideo(null)} style={{ margin:"8px 12px", background:"#f0f0f0", border:"1px solid #e0e0e0", borderRadius:8, padding:"6px 12px", fontSize:11, cursor:"pointer", color:"#1a1a18" }}>
+            Back to results
+          </button>
+        </div>
+      ) : (
+        <div style={{ flex:1, overflowY:"auto" }}>
+          {error && <div style={{ padding:16, fontSize:12, color:"#cc0000", textAlign:"center" }}>⚠️ {error}</div>}
+          {loading && <div style={{ padding:30, fontSize:12, color:"#aaa", textAlign:"center" }}>🔴 Finding live streams...</div>}
+          {results.map(v => (
+            <div key={v.videoId} onClick={() => setActiveVideo(v.videoId)}
+              style={{ display:"flex", gap:10, padding:"10px 12px", borderBottom:"1px solid #f0f0f0", cursor:"pointer", alignItems:"center" }}>
+              <img src={v.thumbnail} style={{ width:80, height:45, borderRadius:6, objectFit:"cover", flexShrink:0 }} alt="" />
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:11, fontWeight:600, color:"#1a1a18", lineHeight:1.4 }}>{v.title}</div>
+                <div style={{ fontSize:10, color:"#c4956a", marginTop:3 }}>{v.channel}</div>
+              </div>
+              <div style={{ width:8, height:8, borderRadius:"50%", background:"#ff4d4f", flexShrink:0 }} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
+
 
 function LiveChat() {
   const [messages, setMessages] = useState([
