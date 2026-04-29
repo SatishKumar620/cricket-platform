@@ -1010,3 +1010,35 @@ async def test_cricbuzz2():
             except Exception as e:
                 results[url] = {"error": str(e)}
     return results
+
+
+@app.get("/api/test/cricbuzz3")
+async def test_cricbuzz3():
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 Chrome/90.0",
+        "Accept": "application/json, text/plain, */*",
+        "Referer": "https://www.cricbuzz.com/",
+        "X-Requested-With": "XMLHttpRequest",
+    }
+    results = {}
+    # Try to get live match list first
+    urls = [
+        "https://www.cricbuzz.com/api/html/cricket-scorecard/115591",
+        "https://www.cricbuzz.com/api/html/cricket-scorecard/115605",
+        "https://www.cricbuzz.com/api/html/homepage/v2/index",
+        "https://www.cricbuzz.com/api/html/series/7607/matches",
+        "https://www.cricbuzz.com/api/html/matches/live",
+    ]
+    async with httpx.AsyncClient(headers=headers, timeout=10, follow_redirects=True) as client:
+        for url in urls:
+            try:
+                r = await client.get(url)
+                results[url] = {
+                    "status": r.status_code,
+                    "content_type": r.headers.get("content-type"),
+                    "length": len(r.text),
+                    "preview": r.text[:500]
+                }
+            except Exception as e:
+                results[url] = {"error": str(e)}
+    return results
