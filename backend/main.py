@@ -952,3 +952,32 @@ async def test_ids():
             except Exception as e:
                 results[lid] = {"error": str(e)}
     return results
+
+
+@app.get("/api/test/cricbuzz")
+async def test_cricbuzz():
+    headers = {
+        "User-Agent": "CricBuzz/4.5 Android",
+        "App-Id": "com.cricbuzz.cricket", 
+        "Accept": "application/json",
+        "os": "android",
+        "devicetype": "mobile",
+    }
+    results = {}
+    urls = [
+        "https://www.cricbuzz.com/api/cricket-match/live-scores",
+        "https://www.cricbuzz.com/live-cricket-scores",
+        "https://www.cricbuzz.com/api/html/cricket-scorecard/115591",
+    ]
+    async with httpx.AsyncClient(headers=headers, timeout=10) as client:
+        for url in urls:
+            try:
+                r = await client.get(url)
+                results[url] = {
+                    "status": r.status_code,
+                    "content_type": r.headers.get("content-type"),
+                    "preview": r.text[:200]
+                }
+            except Exception as e:
+                results[url] = {"error": str(e)}
+    return results
