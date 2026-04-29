@@ -10,7 +10,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "mixtral-8x7b-32768",
+        model: "llama3-8b-8192",
         messages: [{
           role: "user",
           content: `You are an exciting cricket commentator. Generate 2 sentences of live commentary in ${language || "English"} for this ball: "${ball}" in match "${match}". Be energetic and natural.`
