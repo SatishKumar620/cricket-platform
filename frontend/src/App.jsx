@@ -352,21 +352,31 @@ export default function App() {
 
   const activeMatch = matches.find(m => m.id === activeId) || matches[0];
 
-  const handleBallEvent = useCallback((ball, matchId) => {
+  const handleBallEvent = useCallback(async (ball, matchId) => {
     setMatches(prev => prev.map(m => m.id === matchId ? simulateBall(m) : m));
-    const pool = COMMENTARY_POOL[ball] || COMMENTARY_POOL["1"];
-    const text = randomFrom(pool);
-    const item = { id: Date.now(), ball, text, match: matchId, ts: new Date().toLocaleTimeString() };
-    setCommentary(prev => [item, ...prev].slice(0, 30));
-    if (audioEnabled) {
-      fetch(API_BASE + "/commentary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, lang: activeLanguage, voice: activeVoice }),
-      })
-        .then(r => r.json())
-        .then(d => { if (d.audio_b64) playAudio(d.audio_b64); })
-        .catch(() => {});
+    const id = Date.now();
+    const placeholder = { id, ball, text: "Generating commentary...", match: matchId, ts: new Date().toLocaleTimeString() };
+    setCommentary(prev => [placeholder, ...prev].slice(0, 30));
+    try {
+      const res = await fetch(
+        `/api/commentary?ball=${encodeURIComponent(ball)}&match=${encodeURIComponent(matchId)}&language=${encodeURIComponent(activeLanguage)}`
+      );
+      const data = await res.json();
+      const text = data.commentary || randomFrom(COMMENTARY_POOL[ball] || COMMENTARY_POOL["1"]);
+      setCommentary(prev => prev.map(c => c.id === id ? { ...c, text } : c));
+      if (audioEnabled) {
+        fetch(API_BASE + "/commentary", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, lang: activeLanguage, voice: activeVoice }),
+        })
+          .then(r => r.json())
+          .then(d => { if (d.audio_b64) playAudio(d.audio_b64); })
+          .catch(() => {});
+      }
+    } catch(e) {
+      const text = randomFrom(COMMENTARY_POOL[ball] || COMMENTARY_POOL["1"]);
+      setCommentary(prev => prev.map(c => c.id === id ? { ...c, text } : c));
     }
   }, [audioEnabled, activeLanguage, activeVoice, playAudio]);
 
