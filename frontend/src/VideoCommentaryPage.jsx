@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
 const GEMINI_MODEL = "gemini-2.5-flash";
-const FRAME_INTERVAL_SEC = 3;
+const FRAME_INTERVAL_SEC = 10;
 
 const INDIAN_LANGUAGES = [
   { code: "hi", label: "हिंदी",    name: "Hindi"     },
