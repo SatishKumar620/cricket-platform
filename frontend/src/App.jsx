@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import HomePage from "./HomePage.jsx";
 import ScoresPage from "./ScoresPage.jsx";
+import VideoCommentaryPage from "./VideoCommentaryPage.jsx";
 
 const WS_SCORES = import.meta.env.VITE_WS_SCORES || "ws://localhost:8000/ws/scores";
 const WS_AUDIO  = import.meta.env.VITE_WS_AUDIO  || "ws://localhost:8000/tts/ws/audio";
@@ -424,7 +425,8 @@ export default function App() {
     return () => ws.close();
   }, [audioEnabled, activeLanguage, activeVoice, screen, playAudio]);
 
-  if (screen === "scores") return <ScoresPage onBack={() => setScreen("home")} />;
+  if (screen === "scores")     return <ScoresPage onBack={() => setScreen("home")} />;
+  if (screen === "commentary") return <VideoCommentaryPage onBack={() => setScreen("home")} />;
   if (screen === "home")   return <HomePage onEnter={(s) => setScreen(s || "dashboard")} />;
 
   return (
