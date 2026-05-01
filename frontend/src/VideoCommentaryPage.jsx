@@ -189,12 +189,24 @@ function PitchSVG({ style }) {
   );
 }
 
-function extractFrame(video, canvas) {
-  canvas.width  = video.videoWidth  || 640;
-  canvas.height = video.videoHeight || 360;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", 0.7).split(",")[1];
+async function extractAudioChunk(videoEl, durationSec = 8) {
+  return new Promise((resolve, reject) => {
+    const stream = videoEl.captureStream ? videoEl.captureStream() : videoEl.mozCaptureStream();
+    const audioTracks = stream.getAudioTracks();
+    if (!audioTracks.length) return reject(new Error("No audio track"));
+    const audioStream = new MediaStream(audioTracks);
+    const recorder = new MediaRecorder(audioStream, { mimeType: "audio/webm" });
+    const chunks = [];
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    recorder.onstop = async () => {
+      const blob = new Blob(chunks, { type: "audio/webm" });
+      const ab = await blob.arrayBuffer();
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(ab)));
+      resolve(b64);
+    };
+    recorder.start();
+    setTimeout(() => recorder.stop(), durationSec * 1000);
+  });
 }
 
 async function getGeminiCommentary(base64Frame, language, geminiKey, previousText = "") {
@@ -378,8 +390,8 @@ export default function VideoCommentaryPage({ onBack }) {
   };
 
   const processFrame = useCallback(async () => {
-    const vid = videoRef.current, cnv = canvasRef.current;
-    if (!vid || !cnv) return;
+    const vid = videoRef.current;
+    if (!vid) return;
     if (vid.ended) {
       clearInterval(timerRef.current);
       isRunningRef.current = false;
@@ -388,9 +400,9 @@ export default function VideoCommentaryPage({ onBack }) {
     }
     setStatus("processing");
     try {
-      const frame = extractFrame(vid, cnv);
+      const audio = await extractAudioChunk(vid, FRAME_INTERVAL_SEC);
       setFrameCount(n => n + 1);
-      const text = await getGeminiCommentary(frame, language, geminiKey, latestRef.current);
+      const text = await getGeminiCommentary(audio, language, geminiKey, latestRef.current);
       if (!text) { setStatus("idle"); return; }
       latestRef.current = text;
       if (/\bSIX\b/i.test(text)) { setShowSix(true); setTimeout(() => setShowSix(false), 2800); }
