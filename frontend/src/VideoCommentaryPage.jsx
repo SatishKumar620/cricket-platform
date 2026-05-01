@@ -189,43 +189,19 @@ function PitchSVG({ style }) {
   );
 }
 
-async function extractAudioChunk(videoEl, durationSec = 8) {
-  return new Promise((resolve, reject) => {
-    try {
-      const stream = videoEl.captureStream
-        ? videoEl.captureStream()
-        : videoEl.mozCaptureStream
-        ? videoEl.mozCaptureStream()
-        : null;
-      if (!stream) return reject(new Error("captureStream not supported"));
-      const tracks = stream.getAudioTracks();
-      if (!tracks.length) return reject(new Error("No audio track found"));
-      const audioStream = new MediaStream(tracks);
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : MediaRecorder.isTypeSupported("audio/webm")
-        ? "audio/webm"
-        : "";
-      const recorder = new MediaRecorder(audioStream, mimeType ? { mimeType } : {});
-      const chunks = [];
-      recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-      recorder.onerror = e => reject(new Error("Recorder error: " + e.error));
-      recorder.onstop = async () => {
-        if (!chunks.length) return reject(new Error("No audio data captured"));
-        const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
-        const ab = await blob.arrayBuffer();
-        const bytes = new Uint8Array(ab);
-        let b64 = "";
-        const chunkSize = 8192;
-        for (let i = 0; i < bytes.length; i += chunkSize) {
-          b64 += btoa(String.fromCharCode(...bytes.subarray(i, i + chunkSize)));
-        }
-        resolve(b64);
-      };
-      recorder.start(100);
-      setTimeout(() => { if (recorder.state !== "inactive") recorder.stop(); }, durationSec * 1000);
-    } catch(e) { reject(e); }
-  });
+function extractFrame(videoEl, canvas) {
+  const w = videoEl.videoWidth  || 640;
+  const h = videoEl.videoHeight || 360;
+  const scale = Math.min(1, 720 / Math.max(w, h));
+  canvas.width  = Math.floor(w * scale);
+  canvas.height = Math.floor(h * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+  const parts = dataUrl.split(",");
+  if (parts.length < 2 || !parts[1]) throw new Error("Frame capture failed — video not ready");
+  return parts[1];
 }
 
 async function getGeminiCommentary(base64Frame, language, geminiKey, previousText = "") {
@@ -419,9 +395,9 @@ export default function VideoCommentaryPage({ onBack }) {
     }
     setStatus("processing");
     try {
-      const audio = await extractAudioChunk(vid, FRAME_INTERVAL_SEC);
+      const frame = extractFrame(vid, canvasRef.current);
       setFrameCount(n => n + 1);
-      const text = await getGeminiCommentary(audio, language, geminiKey, latestRef.current);
+      const text = await getGeminiCommentary(frame, language, geminiKey, latestRef.current);
       if (!text) { setStatus("idle"); return; }
       latestRef.current = text;
       if (/\bSIX\b/i.test(text)) { setShowSix(true); setTimeout(() => setShowSix(false), 2800); }
