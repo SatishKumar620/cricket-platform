@@ -342,61 +342,96 @@ export default function VideoCommentaryPage({ onBack }) {
   const [showSix,      setShowSix]      = useState(false);
   const [progress,     setProgress]     = useState(0);
 
-  const videoRef  = useRef(null);
-  const canvasRef = useRef(null);
-  const timerRef  = useRef(null);
-  const latestRef = useRef("");
-  const { enqueue } = useAudioQueue();
+  const videoRef     = useRef(null);
+  const canvasRef    = useRef(null);
+  const timerRef     = useRef(null);
+  const latestRef    = useRef("");
+  const isRunningRef = useRef(false);
+  const { enqueue }  = useAudioQueue();
 
+  // Progress driven by real video currentTime/duration
   useEffect(() => {
     if (!videoReady) return;
-    setProgress(0);
-    const iv = setInterval(() => {
-      setProgress(p => { if (p >= 100) { clearInterval(iv); return 100; } return p + (isRunning ? 2 : 0.3); });
-    }, 200);
-    return () => clearInterval(iv);
-  }, [videoReady, isRunning]);
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onTimeUpdate = () => {
+      if (vid.duration && vid.duration > 0)
+        setProgress((vid.currentTime / vid.duration) * 100);
+    };
+    vid.addEventListener("timeupdate", onTimeUpdate);
+    return () => vid.removeEventListener("timeupdate", onTimeUpdate);
+  }, [videoReady]);
 
   const handleVideoLoad = e => {
     const file = e.target.files?.[0]; if (!file) return;
     setVideoName(file.name);
     const vid = videoRef.current;
-    vid.src = URL.createObjectURL(file); vid.load();
-    vid.onloadedmetadata = () => setVideoReady(true);
-    setCommentary([]); setFrameCount(0); setIsRunning(false);
+    if (!vid) return;
+    clearInterval(timerRef.current);
+    isRunningRef.current = false;
+    setIsRunning(false);
+    vid.src = URL.createObjectURL(file);
+    vid.load();
+    vid.oncanplaythrough = () => { setVideoReady(true); setProgress(0); };
+    setCommentary([]); setFrameCount(0);
     setStatus("idle"); setErrorMsg(""); latestRef.current = "";
   };
 
   const processFrame = useCallback(async () => {
     const vid = videoRef.current, cnv = canvasRef.current;
-    if (!vid || !cnv || vid.paused || vid.ended) return;
+    if (!vid || !cnv) return;
+    if (vid.ended) {
+      clearInterval(timerRef.current);
+      isRunningRef.current = false;
+      setIsRunning(false); setStatus("idle");
+      return;
+    }
     setStatus("processing");
     try {
-      const frame = extractFrame(vid, cnv); setFrameCount(n => n + 1);
-      const text  = await getGeminiCommentary(frame, language, geminiKey, latestRef.current);
-      if (!text) return;
+      const frame = extractFrame(vid, cnv);
+      setFrameCount(n => n + 1);
+      const text = await getGeminiCommentary(frame, language, geminiKey, latestRef.current);
+      if (!text) { setStatus("idle"); return; }
       latestRef.current = text;
       if (/\bSIX\b/i.test(text)) { setShowSix(true); setTimeout(() => setShowSix(false), 2800); }
       const langLabel = INDIAN_LANGUAGES.find(l => l.code === language)?.name || language;
       let hasTts = false;
       if (ttsEnabled && sarvamKey) {
-        try { const audio = await getSarvamAudio(text, language, voiceGender, sarvamKey); if (audio) { enqueue(audio); hasTts = true; } }
-        catch (e) { console.warn("TTS:", e.message); }
+        try {
+          const audio = await getSarvamAudio(text, language, voiceGender, sarvamKey);
+          if (audio) { enqueue(audio); hasTts = true; }
+        } catch (e) { console.warn("TTS:", e.message); }
       }
-      setCommentary(prev => [{ id: Date.now(), text, lang: langLabel, tts: hasTts, timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) }, ...prev].slice(0, 50));
+      setCommentary(prev => [{
+        id: Date.now(), text, lang: langLabel, tts: hasTts,
+        timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+      }, ...prev].slice(0, 50));
       setStatus("idle");
     } catch (err) { setStatus("error"); setErrorMsg(err.message); }
   }, [geminiKey, sarvamKey, language, voiceGender, ttsEnabled, enqueue]);
 
-  const startCommentary = useCallback(() => {
+  // FIX: await play() before first frame so vid.paused is never true on first call
+  const startCommentary = useCallback(async () => {
     if (!geminiKey) { setShowSettings(true); return; }
-    videoRef.current?.play(); setIsRunning(true); setStatus("idle");
+    const vid = videoRef.current; if (!vid) return;
+    setErrorMsg(""); setIsRunning(true); isRunningRef.current = true; setStatus("idle");
+    try {
+      await vid.play();
+    } catch (err) {
+      setErrorMsg("Playback failed: " + err.message);
+      setIsRunning(false); isRunningRef.current = false; return;
+    }
     processFrame();
-    timerRef.current = setInterval(processFrame, FRAME_INTERVAL_SEC * 1000);
+    timerRef.current = setInterval(() => {
+      if (!isRunningRef.current) return;
+      processFrame();
+    }, FRAME_INTERVAL_SEC * 1000);
   }, [geminiKey, processFrame]);
 
   const stopCommentary = useCallback(() => {
-    clearInterval(timerRef.current); videoRef.current?.pause();
+    clearInterval(timerRef.current);
+    isRunningRef.current = false;
+    videoRef.current?.pause();
     setIsRunning(false); setStatus("idle");
   }, []);
 
@@ -404,7 +439,6 @@ export default function VideoCommentaryPage({ onBack }) {
 
   const statusDot = { idle: "#38A169", processing: "#D69E2E", error: "#E53E3E" }[status];
   const statusTxt = { idle: "Ready", processing: "Generating", error: "Error" }[status];
-
   const T = {
     bg: "#080F0C", sidebar: "#060D0A", panel: "#0A1410", card: "#0D1A14",
     border: "#152018", border2: "#1E2E28", accent: "#38A169", accentDim: "#276749",
@@ -430,7 +464,18 @@ export default function VideoCommentaryPage({ onBack }) {
         .stop-btn:hover  { background: rgba(229,62,62,0.12) !important; }
       `}</style>
 
+      {/* Always-mounted hidden video — FIX for videoRef being null */}
       <canvas ref={canvasRef} style={{ display: "none" }}/>
+      <video
+        ref={videoRef}
+        style={{ display: "none" }}
+        playsInline
+        onEnded={() => {
+          clearInterval(timerRef.current);
+          isRunningRef.current = false;
+          setIsRunning(false); setStatus("idle");
+        }}
+      />
 
       {showSix && (
         <div style={{ position: "fixed", inset: 0, zIndex: 300, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -520,7 +565,6 @@ export default function VideoCommentaryPage({ onBack }) {
 
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
           <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
-
             <div style={{ borderRadius: 10, overflow: "hidden", border: `1px solid ${T.border}`, background: T.card, flexShrink: 0 }}>
               {!videoReady ? (
                 <label className="upload-z" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 220, cursor: "pointer", position: "relative", background: `linear-gradient(160deg, ${T.card} 0%, #0F1F18 100%)`, transition: "all 0.2s" }}>
@@ -554,7 +598,14 @@ export default function VideoCommentaryPage({ onBack }) {
                       Generating…
                     </div>
                   )}
-                  <video ref={videoRef} style={{ width: "100%", maxHeight: 260, display: "block", objectFit: "contain", background: "#000" }} controls={!isRunning} playsInline/>
+                  {/* Visible preview mirrors the hidden videoRef src */}
+                  <video
+                    src={videoRef.current?.src}
+                    style={{ width: "100%", maxHeight: 260, display: "block", objectFit: "contain", background: "#000" }}
+                    controls={!isRunning}
+                    playsInline
+                    muted
+                  />
                 </div>
               )}
             </div>
@@ -677,7 +728,7 @@ export default function VideoCommentaryPage({ onBack }) {
                   { label: "Frame Interval",    val: `${FRAME_INTERVAL_SEC}s`,                               color: T.gold    },
                   { label: "AI Model",          val: "Gemini 2.0 Flash",                                     color: T.textMid },
                   { label: "TTS Engine",        val: "Sarvam Bulbul v2",                                     color: T.textMid },
-                  { label: "TTS Status",        val: ttsEnabled && sarvamKey ? "Active" : "Off",            color: ttsEnabled && sarvamKey ? T.accent : T.red },
+                  { label: "TTS Status",        val: ttsEnabled && sarvamKey ? "Active" : "Off",             color: ttsEnabled && sarvamKey ? T.accent : T.red },
                 ].map(s => (
                   <div key={s.label} style={{ background: T.card, borderRadius: 7, padding: "9px 12px", border: `1px solid ${T.border}`, display: "flex", alignItems: "center" }}>
                     <span style={{ fontSize: 12, color: T.textMid, flex: 1 }}>{s.label}</span>
@@ -719,3 +770,4 @@ export default function VideoCommentaryPage({ onBack }) {
     </div>
   );
 }
+
