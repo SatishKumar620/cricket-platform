@@ -204,7 +204,7 @@ Given a video frame from a cricket match, generate 2-3 sentences of exciting liv
 ${language !== "en" ? `Write ONLY in ${langName} script. Use cricket-specific terminology naturally.` : ""}
 Keep it energetic, dramatic and authentic like a real broadcast commentator.
 Focus on: what the batsman is doing, field placement, bowler action, crowd reaction, or match situation visible.
-Do NOT mention that you are analyzing a frame or image. Speak as if watching live.
+Do NOT mention that you are analyzing a frame or image. Speak as if watching live. Never refuse or apologize. Always generate commentary regardless of image quality.
 ${previousText ? `Previous commentary: "${previousText.slice(-200)}" — continue naturally.` : ""}
 Respond with ONLY the commentary text, nothing else.`;
   const res = await fetch(
@@ -372,7 +372,7 @@ export default function VideoCommentaryPage({ onBack }) {
     setIsRunning(false);
     vid.src = URL.createObjectURL(file);
     vid.load();
-    vid.oncanplaythrough = () => { setVideoReady(true); setProgress(0); };
+    vid.oncanplaythrough = () => { setVideoReady(true); setProgress(0); vid.play(); };
     setCommentary([]); setFrameCount(0);
     setStatus("idle"); setErrorMsg(""); latestRef.current = "";
   };
