@@ -27,6 +27,16 @@ const SARVAM_LANG = {
   ml: "ml-IN", en: "en-IN",
 };
 
+const NAV_ITEMS = [
+  { id: "dashboard",   icon: "⊞", label: "Dashboard"       },
+  { id: "upload",      icon: "↑", label: "Upload Video"     },
+  { id: "commentary",  icon: "◎", label: "Live Commentary"  },
+  { id: "insights",    icon: "▦", label: "Match Insights"   },
+  { id: "highlights",  icon: "★", label: "Highlights"       },
+  { id: "settings",    icon: "⚙", label: "Settings"         },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function extractFrame(video, canvas) {
   canvas.width  = video.videoWidth  || 640;
   canvas.height = video.videoHeight || 360;
@@ -80,85 +90,169 @@ async function getSarvamAudio(text, language, voiceGender, sarvamKey) {
       enable_preprocessing: true, model: "bulbul:v2",
     }),
   });
-  if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err.message || "Sarvam error"); }
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || "Sarvam error");
+  }
   const data = await response.json();
   return data.audios?.[0];
 }
 
+// ─── Audio Queue Hook ─────────────────────────────────────────────────────────
 function useAudioQueue() {
-  const ctxRef = useRef(null); const queueRef = useRef([]); const playingRef = useRef(false);
+  const ctxRef     = useRef(null);
+  const queueRef   = useRef([]);
+  const playingRef = useRef(false);
+
   const playNext = useCallback(async () => {
     if (playingRef.current || queueRef.current.length === 0) return;
     playingRef.current = true;
     const b64 = queueRef.current.shift();
     try {
-      const ctx = ctxRef.current || new AudioContext(); ctxRef.current = ctx;
-      const binary = atob(b64); const bytes = new Uint8Array(binary.length);
+      const ctx    = ctxRef.current || new AudioContext();
+      ctxRef.current = ctx;
+      const binary = atob(b64);
+      const bytes  = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
       const buffer = await ctx.decodeAudioData(bytes.buffer);
-      const src = ctx.createBufferSource(); src.buffer = buffer; src.connect(ctx.destination);
-      src.onended = () => { playingRef.current = false; playNext(); }; src.start(0);
+      const src    = ctx.createBufferSource();
+      src.buffer   = buffer;
+      src.connect(ctx.destination);
+      src.onended  = () => { playingRef.current = false; playNext(); };
+      src.start(0);
     } catch (e) { playingRef.current = false; playNext(); }
   }, []);
-  const enqueue = useCallback((b64) => { queueRef.current.push(b64); playNext(); }, [playNext]);
+
+  const enqueue = useCallback((b64) => {
+    queueRef.current.push(b64); playNext();
+  }, [playNext]);
+
   return { enqueue };
 }
 
+// ─── Commentary Bubble ────────────────────────────────────────────────────────
 function CommentaryBubble({ item, isLatest }) {
   const [displayed, setDisplayed] = useState(isLatest ? "" : item.text);
+
   useEffect(() => {
     if (!isLatest) return;
     let i = 0; setDisplayed("");
-    const t = setInterval(() => { i += 3; setDisplayed(item.text.slice(0, i)); if (i >= item.text.length) clearInterval(t); }, 18);
+    const t = setInterval(() => {
+      i += 3;
+      setDisplayed(item.text.slice(0, i));
+      if (i >= item.text.length) clearInterval(t);
+    }, 18);
     return () => clearInterval(t);
   }, [isLatest, item.text]);
+
+  const typeMap = {
+    SIX:    { color: "#f97316", bg: "#f9731615" },
+    FOUR:   { color: "#3b82f6", bg: "#3b82f615" },
+    WICKET: { color: "#ef4444", bg: "#ef444415" },
+    DOT:    { color: "#94a3b8", bg: "#94a3b815" },
+    DEFAULT:{ color: "#22c55e", bg: "#22c55e15" },
+  };
+  const detected = item.text.match(/\b(SIX|FOUR|WICKET)\b/i);
+  const typeKey  = detected ? detected[1].toUpperCase() : "DEFAULT";
+  const style    = typeMap[typeKey] || typeMap.DEFAULT;
+
   return (
-    <div style={{ padding: "14px 16px", borderRadius: 12, background: isLatest ? "#0f1f15" : "#111", border: `1px solid ${isLatest ? "#2d8a42" : "#222"}`, animation: isLatest ? "bubbleIn 0.35s ease" : "none" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-        <div style={{ width: 8, height: 8, borderRadius: "50%", background: isLatest ? "#00e676" : "#333" }} />
-        <span style={{ fontSize: 10, color: "#556", letterSpacing: 1 }}>{item.timestamp} · {item.lang}</span>
-        {item.tts && <span style={{ marginLeft: "auto", fontSize: 10, color: "#2d8a42" }}>🔊</span>}
+    <div style={{
+      padding: "10px 12px", borderRadius: 8,
+      background: isLatest ? "#0d1f35" : "#0a1628",
+      border: `1px solid ${isLatest ? "#1e3a5f" : "#1e293b"}`,
+      borderLeft: `3px solid ${isLatest ? style.color : "#1e293b"}`,
+      animation: isLatest ? "bubbleIn 0.3s ease" : "none",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+        <div style={{ width: 6, height: 6, borderRadius: "50%", background: isLatest ? style.color : "#334155" }} />
+        <span style={{ fontSize: 9, color: "#475569", letterSpacing: 0.5 }}>
+          {item.timestamp} · {item.lang}
+        </span>
+        {detected && (
+          <span style={{
+            marginLeft: 4, fontSize: 9, fontWeight: 800,
+            color: style.color, background: style.bg,
+            padding: "1px 6px", borderRadius: 3,
+          }}>{typeKey}</span>
+        )}
+        {item.tts && <span style={{ marginLeft: "auto", fontSize: 9, color: "#22c55e" }}>🔊</span>}
       </div>
-      <p style={{ fontSize: 14, lineHeight: 1.7, color: isLatest ? "#e8f5e9" : "#888", margin: 0, fontFamily: "'Noto Sans','DM Sans',sans-serif" }}>
-        {displayed}{isLatest && displayed.length < item.text.length && <span style={{ opacity: 0.4 }}>▍</span>}
+      <p style={{
+        fontSize: 12, lineHeight: 1.6, margin: 0,
+        color: isLatest ? "#e2e8f0" : "#64748b",
+        fontFamily: "'Noto Sans', 'DM Sans', sans-serif",
+      }}>
+        {displayed}
+        {isLatest && displayed.length < item.text.length && (
+          <span style={{ opacity: 0.4 }}>▍</span>
+        )}
       </p>
     </div>
   );
 }
 
-const inputStyle = { width: "100%", background: "#0a0a0a", border: "1px solid #2a3a2a", borderRadius: 8, padding: "10px 12px", color: "#ccc", fontSize: 13, fontFamily: "monospace", outline: "none" };
+// ─── Settings Modal ───────────────────────────────────────────────────────────
+function SettingsModal({ geminiKey, setGeminiKey, sarvamKey, setSarvamKey, onClose }) {
+  const [g, setG] = useState(geminiKey);
+  const [s, setS] = useState(sarvamKey);
 
-function SettingsPanel({ geminiKey, setGeminiKey, sarvamKey, setSarvamKey, onClose }) {
-  const [g, setG] = useState(geminiKey); const [s, setS] = useState(sarvamKey);
+  const inputStyle = {
+    width: "100%", background: "#060d1a", border: "1px solid #1e293b",
+    borderRadius: 6, padding: "9px 12px", color: "#e2e8f0",
+    fontSize: 12, fontFamily: "monospace", outline: "none",
+  };
+
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ background: "#111", borderRadius: 16, border: "1px solid #2a3a2a", padding: 28, width: "100%", maxWidth: 480 }}>
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 200,
+      background: "rgba(0,0,0,0.85)", backdropFilter: "blur(6px)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+    }}>
+      <div style={{
+        background: "#0a1628", borderRadius: 12,
+        border: "1px solid #1e293b", padding: 24,
+        width: "100%", maxWidth: 440,
+      }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 style={{ color: "#e8b84b", fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 900 }}>API Keys</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#556", cursor: "pointer", fontSize: 20 }}>✕</button>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#f97316", letterSpacing: 1 }}>API KEYS</div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: 18 }}>✕</button>
         </div>
-        <label style={{ display: "block", marginBottom: 16 }}>
-          <div style={{ fontSize: 11, color: "#e8b84b", letterSpacing: 2, marginBottom: 4 }}>GEMINI API KEY</div>
-          <div style={{ fontSize: 10, color: "#445", marginBottom: 6 }}>Free → <a href="https://aistudio.google.com" target="_blank" rel="noreferrer" style={{ color: "#2d8a42" }}>aistudio.google.com</a></div>
+
+        <label style={{ display: "block", marginBottom: 14 }}>
+          <div style={{ fontSize: 10, color: "#f97316", letterSpacing: 1.5, marginBottom: 4 }}>GEMINI API KEY</div>
+          <div style={{ fontSize: 10, color: "#475569", marginBottom: 6 }}>
+            Free → <a href="https://aistudio.google.com" target="_blank" rel="noreferrer" style={{ color: "#3b82f6" }}>aistudio.google.com</a>
+          </div>
           <input type="password" value={g} onChange={e => setG(e.target.value)} placeholder="AIza..." style={inputStyle} />
         </label>
-        <label style={{ display: "block", marginBottom: 24 }}>
-          <div style={{ fontSize: 11, color: "#e8b84b", letterSpacing: 2, marginBottom: 4 }}>SARVAM API KEY (TTS)</div>
-          <div style={{ fontSize: 10, color: "#445", marginBottom: 6 }}>Free ₹1000 credits → <a href="https://console.sarvam.ai" target="_blank" rel="noreferrer" style={{ color: "#2d8a42" }}>console.sarvam.ai</a></div>
+
+        <label style={{ display: "block", marginBottom: 20 }}>
+          <div style={{ fontSize: 10, color: "#f97316", letterSpacing: 1.5, marginBottom: 4 }}>SARVAM API KEY (TTS)</div>
+          <div style={{ fontSize: 10, color: "#475569", marginBottom: 6 }}>
+            Free credits → <a href="https://console.sarvam.ai" target="_blank" rel="noreferrer" style={{ color: "#3b82f6" }}>console.sarvam.ai</a>
+          </div>
           <input type="password" value={s} onChange={e => setS(e.target.value)} placeholder="your-sarvam-key" style={inputStyle} />
         </label>
-        <button onClick={() => { setGeminiKey(g); localStorage.setItem("vc_gemini_key",g); setSarvamKey(s); localStorage.setItem("vc_sarvam_key",s); onClose(); }}
-          style={{ width: "100%", background: "#1a5c2a", color: "#fff", border: "none", borderRadius: 8, padding: "12px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-          Save Keys
-        </button>
+
+        <button onClick={() => {
+          setGeminiKey(g); localStorage.setItem("vc_gemini_key", g);
+          setSarvamKey(s); localStorage.setItem("vc_sarvam_key", s);
+          onClose();
+        }} style={{
+          width: "100%", background: "linear-gradient(135deg, #f97316, #ea580c)",
+          color: "#fff", border: "none", borderRadius: 8,
+          padding: "11px", fontSize: 13, fontWeight: 700, cursor: "pointer",
+        }}>Save Keys</button>
       </div>
     </div>
   );
 }
 
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function VideoCommentaryPage({ onBack }) {
-  const [geminiKey,    setGeminiKey]    = useState(() => localStorage.getItem("vc_gemini_key")  || "");
-  const [sarvamKey,    setSarvamKey]    = useState(() => localStorage.getItem("vc_sarvam_key")  || "");
+  const [geminiKey,    setGeminiKey]    = useState(() => localStorage.getItem("vc_gemini_key") || "");
+  const [sarvamKey,    setSarvamKey]    = useState(() => localStorage.getItem("vc_sarvam_key") || "");
   const [language,     setLanguage]     = useState("hi");
   const [voiceGender,  setVoiceGender]  = useState("male");
   const [ttsEnabled,   setTtsEnabled]   = useState(true);
@@ -169,15 +263,39 @@ export default function VideoCommentaryPage({ onBack }) {
   const [commentary,   setCommentary]   = useState([]);
   const [frameCount,   setFrameCount]   = useState(0);
   const [errorMsg,     setErrorMsg]     = useState("");
-  const videoRef  = useRef(null); const canvasRef = useRef(null);
-  const timerRef  = useRef(null); const latestRef = useRef("");
+  const [activeNav,    setActiveNav]    = useState("dashboard");
+  const [activeTab,    setActiveTab]    = useState("commentary");
+  const [aiProgress,   setAiProgress]   = useState(0);
+  const [videoName,    setVideoName]    = useState("");
+
+  const videoRef  = useRef(null);
+  const canvasRef = useRef(null);
+  const timerRef  = useRef(null);
+  const latestRef = useRef("");
   const { enqueue } = useAudioQueue();
+
+  // Simulate AI processing progress when video is loaded
+  useEffect(() => {
+    if (!videoReady) return;
+    setAiProgress(0);
+    const iv = setInterval(() => {
+      setAiProgress(p => {
+        if (p >= 100) { clearInterval(iv); return 100; }
+        return p + (isRunning ? 2 : 0.5);
+      });
+    }, 300);
+    return () => clearInterval(iv);
+  }, [videoReady, isRunning]);
 
   const handleVideoLoad = (e) => {
     const file = e.target.files?.[0]; if (!file) return;
-    const vid = videoRef.current; vid.src = URL.createObjectURL(file); vid.load();
+    setVideoName(file.name);
+    const vid = videoRef.current;
+    vid.src = URL.createObjectURL(file); vid.load();
     vid.onloadedmetadata = () => setVideoReady(true);
-    setCommentary([]); setFrameCount(0); setIsRunning(false); setStatus("idle"); setErrorMsg(""); latestRef.current = "";
+    setCommentary([]); setFrameCount(0); setIsRunning(false);
+    setStatus("idle"); setErrorMsg(""); latestRef.current = "";
+    setAiProgress(0);
   };
 
   const processFrame = useCallback(async () => {
@@ -186,15 +304,21 @@ export default function VideoCommentaryPage({ onBack }) {
     setStatus("processing");
     try {
       const frame = extractFrame(vid, cnv); setFrameCount(n => n + 1);
-      const text = await getGeminiCommentary(frame, language, geminiKey, latestRef.current);
-      if (!text) return; latestRef.current = text;
+      const text  = await getGeminiCommentary(frame, language, geminiKey, latestRef.current);
+      if (!text) return;
+      latestRef.current = text;
       const langLabel = INDIAN_LANGUAGES.find(l => l.code === language)?.name || language;
       let hasTts = false;
       if (ttsEnabled && sarvamKey) {
-        try { const audio = await getSarvamAudio(text, language, voiceGender, sarvamKey); if (audio) { enqueue(audio); hasTts = true; } }
-        catch (e) { console.warn("TTS:", e.message); }
+        try {
+          const audio = await getSarvamAudio(text, language, voiceGender, sarvamKey);
+          if (audio) { enqueue(audio); hasTts = true; }
+        } catch (e) { console.warn("TTS:", e.message); }
       }
-      setCommentary(prev => [{ id: Date.now(), text, timestamp: new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"}), lang: langLabel, tts: hasTts }, ...prev].slice(0, 50));
+      setCommentary(prev => [{
+        id: Date.now(), text, lang: langLabel, tts: hasTts,
+        timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      }, ...prev].slice(0, 50));
       setStatus("idle");
     } catch (err) { setStatus("error"); setErrorMsg(err.message); }
   }, [geminiKey, sarvamKey, language, voiceGender, ttsEnabled, enqueue]);
@@ -202,145 +326,373 @@ export default function VideoCommentaryPage({ onBack }) {
   const startCommentary = useCallback(() => {
     if (!geminiKey) { setShowSettings(true); return; }
     videoRef.current?.play(); setIsRunning(true); setStatus("idle");
-    processFrame(); timerRef.current = setInterval(processFrame, FRAME_INTERVAL_SEC * 1000);
+    processFrame();
+    timerRef.current = setInterval(processFrame, FRAME_INTERVAL_SEC * 1000);
   }, [geminiKey, processFrame]);
 
   const stopCommentary = useCallback(() => {
-    clearInterval(timerRef.current); videoRef.current?.pause(); setIsRunning(false); setStatus("idle");
+    clearInterval(timerRef.current); videoRef.current?.pause();
+    setIsRunning(false); setStatus("idle");
   }, []);
 
   useEffect(() => () => clearInterval(timerRef.current), []);
 
-  const statusColor = { idle:"#556", processing:"#e8b84b", error:"#e53935" }[status];
-  const statusText  = { idle:"Ready", processing:"Generating...", error:"Error" }[status];
+  const statusColor = { idle: "#22c55e", processing: "#f97316", error: "#ef4444" }[status];
+  const statusText  = { idle: "Ready", processing: "Generating...", error: "Error" }[status];
 
+  // ── Layout ──────────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight:"100vh", background:"#0a0f0a", fontFamily:"'DM Sans',sans-serif", color:"#ccc" }}>
+    <div style={{ display: "flex", height: "100vh", background: "#060d1a", fontFamily: "'Rajdhani','Segoe UI',sans-serif", color: "#e2e8f0", overflow: "hidden" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=DM+Sans:wght@400;600;700&family=DM+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans:wght@400;600&display=swap');
         *{box-sizing:border-box}
-        ::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-thumb{background:#1a2a1a;border-radius:2px}
-        @keyframes bubbleIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+        ::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-track{background:#0a1628} ::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+        @keyframes bubbleIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-        .upload-zone:hover{border-color:#2d8a42!important;background:rgba(45,138,66,0.05)!important}
-        .lang-chip:hover{border-color:#2d8a42!important;color:#4caf50!important}
-        @media(max-width:768px){.cg{grid-template-columns:1fr!important}.cr{height:400px!important}}
+        @keyframes liveDot{0%,100%{transform:scale(1)}50%{transform:scale(1.5)}}
+        .nav-btn:hover{background:rgba(249,115,22,0.08)!important;color:#94a3b8!important}
+        .lang-chip:hover{border-color:#f97316!important;color:#f97316!important}
+        .upload-zone:hover{border-color:#f97316!important;background:rgba(249,115,22,0.04)!important}
       `}</style>
-      <canvas ref={canvasRef} style={{ display:"none" }} />
-      {showSettings && <SettingsPanel geminiKey={geminiKey} setGeminiKey={setGeminiKey} sarvamKey={sarvamKey} setSarvamKey={setSarvamKey} onClose={() => setShowSettings(false)} />}
 
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 24px", background:"#0d150d", borderBottom:"1px solid #1a2a1a", position:"sticky", top:0, zIndex:40 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-          <button onClick={onBack} style={{ background:"none", border:"none", cursor:"pointer", color:"#556", fontSize:13 }}>← Back</button>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:900, color:"#fff" }}>Cric<span style={{ color:"#e8b84b" }}>Cast</span></div>
-          <div style={{ fontSize:9, letterSpacing:2, color:"#2d8a42", background:"rgba(45,138,66,0.12)", border:"1px solid #1a4a22", padding:"3px 8px", borderRadius:4 }}>AI VIDEO COMMENTARY</div>
-        </div>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:statusColor }}>
-            <div style={{ width:7, height:7, borderRadius:"50%", background:statusColor, animation:status==="processing"?"pulse 1s infinite":"none" }} />{statusText}
+      <canvas ref={canvasRef} style={{ display: "none" }} />
+      {showSettings && (
+        <SettingsModal
+          geminiKey={geminiKey} setGeminiKey={setGeminiKey}
+          sarvamKey={sarvamKey} setSarvamKey={setSarvamKey}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {/* ── Sidebar ── */}
+      <div style={{ width: 200, background: "#0a1628", borderRight: "1px solid #1e293b", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+        {/* Logo */}
+        <div style={{ padding: "14px 16px 12px", borderBottom: "1px solid #1e293b" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ background: "linear-gradient(135deg,#f97316,#ea580c)", borderRadius: 5, padding: "3px 7px", fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: 1 }}>AI</div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#f97316", letterSpacing: 2 }}>CRICKET</div>
+              <div style={{ fontSize: 8, color: "#475569", letterSpacing: 1 }}>COMMENTARY GENERATOR</div>
+            </div>
           </div>
-          <button onClick={() => setShowSettings(true)} style={{ background:geminiKey?"rgba(45,138,66,0.15)":"rgba(232,184,75,0.15)", border:`1px solid ${geminiKey?"#1a4a22":"#5a4a10"}`, borderRadius:8, padding:"6px 12px", cursor:"pointer", fontSize:12, color:geminiKey?"#2d8a42":"#e8b84b" }}>
-            {geminiKey ? "⚙ Keys Set" : "⚙ Add API Keys"}
-          </button>
+        </div>
+
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: "10px 8px" }}>
+          {NAV_ITEMS.map(item => (
+            <button key={item.id} className="nav-btn" onClick={() => {
+              setActiveNav(item.id);
+              if (item.id === "settings") setShowSettings(true);
+            }} style={{
+              width: "100%", padding: "8px 10px", borderRadius: 6, border: "none",
+              background: activeNav === item.id ? "rgba(249,115,22,0.1)" : "transparent",
+              color: activeNav === item.id ? "#f97316" : "#475569",
+              borderLeft: activeNav === item.id ? "2px solid #f97316" : "2px solid transparent",
+              cursor: "pointer", textAlign: "left", fontSize: 12, fontWeight: 600,
+              display: "flex", alignItems: "center", gap: 8, marginBottom: 2, transition: "all 0.15s",
+            }}>
+              <span style={{ fontSize: 13 }}>{item.icon}</span>{item.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Upload box in sidebar */}
+        <div style={{ padding: "10px 12px", borderTop: "1px solid #1e293b" }}>
+          <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>UPLOAD VIDEO</div>
+          <label className="upload-zone" style={{
+            display: "block", border: "1px dashed #1e293b", borderRadius: 8,
+            padding: "10px 8px", textAlign: "center", cursor: "pointer",
+            background: "#060d1a", transition: "all 0.2s", position: "relative",
+          }}>
+            <input type="file" accept="video/*" onChange={handleVideoLoad} style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer" }} />
+            <div style={{ fontSize: 16, marginBottom: 3 }}>☁</div>
+            <div style={{ fontSize: 9, color: "#475569", marginBottom: 6 }}>
+              {videoName ? videoName.slice(0, 18) + (videoName.length > 18 ? "…" : "") : "Drag & Drop Video Here"}
+            </div>
+            <div style={{ background: "linear-gradient(135deg,#f97316,#ea580c)", color: "#fff", padding: "4px 8px", borderRadius: 4, fontSize: 9, fontWeight: 700, display: "inline-block" }}>
+              Browse Files
+            </div>
+            <div style={{ fontSize: 7, color: "#334155", marginTop: 4 }}>MP4, MOV, AVI · Any size</div>
+          </label>
+
+          {/* AI Processing */}
+          {videoReady && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>AI PROCESSING</div>
+              <div style={{ fontSize: 9, color: "#64748b", marginBottom: 3 }}>
+                {isRunning ? "Analyzing frames..." : "Video loaded"}
+              </div>
+              <div style={{ background: "#1e293b", borderRadius: 3, height: 4, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${aiProgress}%`, background: "linear-gradient(90deg,#f97316,#fb923c)", borderRadius: 3, transition: "width 0.4s ease" }} />
+              </div>
+              <div style={{ fontSize: 8, color: "#f97316", textAlign: "right", marginTop: 2 }}>{aiProgress.toFixed(0)}%</div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="cg" style={{ display:"grid", gridTemplateColumns:"1fr 380px", minHeight:"calc(100vh - 57px)" }}>
-        <div style={{ padding:24, borderRight:"1px solid #1a2a1a", display:"flex", flexDirection:"column", gap:20 }}>
+      {/* ── Main Area ── */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
-          {!videoReady ? (
-            <label className="upload-zone" style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", border:"2px dashed #1a2a1a", borderRadius:12, padding:"60px 24px", cursor:"pointer", background:"rgba(255,255,255,0.01)", position:"relative", minHeight:280, transition:"all 0.2s" }}>
-              <input type="file" accept="video/*" onChange={handleVideoLoad} style={{ position:"absolute", inset:0, opacity:0, cursor:"pointer" }} />
-              <div style={{ fontSize:48, marginBottom:16 }}>🎥</div>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:900, color:"#e8b84b", marginBottom:8 }}>Upload Cricket Video</div>
-              <div style={{ fontSize:12, color:"#334", textAlign:"center", lineHeight:1.6 }}>MP4, MOV, WebM — any length<br/>Frames sent to Gemini AI every {FRAME_INTERVAL_SEC}s</div>
-            </label>
-          ) : (
-            <div style={{ position:"relative", borderRadius:12, overflow:"hidden", background:"#000", border:"1px solid #1a2a1a" }}>
-              <video ref={videoRef} style={{ width:"100%", maxHeight:360, display:"block", objectFit:"contain" }} controls={!isRunning} playsInline />
-              {isRunning && status==="processing" && (
-                <div style={{ position:"absolute", top:12, right:12, background:"rgba(0,0,0,0.8)", borderRadius:8, padding:"6px 12px", display:"flex", alignItems:"center", gap:6, fontSize:11, color:"#e8b84b" }}>
-                  <div style={{ width:14, height:14, border:"2px solid #e8b84b", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />Generating...
-                </div>
+        {/* Top bar */}
+        <div style={{ padding: "8px 16px", borderBottom: "1px solid #1e293b", background: "#0a1628", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {onBack && (
+              <button onClick={onBack} style={{ background: "none", border: "none", color: "#475569", cursor: "pointer", fontSize: 12 }}>← Back</button>
+            )}
+            <div style={{ fontSize: 12, color: "#64748b" }}>
+              {videoName ? `AI Understanding: ${videoName.slice(0, 30)}` : "AI Commentary Dashboard"}
+            </div>
+            {videoReady && (
+              <div style={{ display: "flex", alignItems: "center", gap: 5, background: "#0d1f35", padding: "2px 8px", borderRadius: 20 }}>
+                <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#f97316", animation: "pulse 1s infinite" }} />
+                <div style={{ fontSize: 10, color: "#f97316", fontWeight: 700 }}>{aiProgress.toFixed(0)}%</div>
+              </div>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: statusColor }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: statusColor, animation: status === "processing" ? "pulse 1s infinite" : "none" }} />
+              {statusText}
+            </div>
+            <button onClick={() => setShowSettings(true)} style={{
+              background: geminiKey ? "rgba(34,197,94,0.1)" : "rgba(249,115,22,0.1)",
+              border: `1px solid ${geminiKey ? "#166534" : "#7c2d12"}`,
+              borderRadius: 6, padding: "5px 10px", cursor: "pointer",
+              fontSize: 10, color: geminiKey ? "#22c55e" : "#f97316", fontWeight: 600,
+            }}>
+              {geminiKey ? "⚙ Keys Set" : "⚙ Add API Keys"}
+            </button>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#f97316,#ea580c)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>S</div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+
+          {/* ── Center Column ── */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10, padding: 12, overflowY: "auto" }}>
+
+            {/* Video Player */}
+            <div style={{ background: "#000", borderRadius: 10, overflow: "hidden", border: "1px solid #1e293b", position: "relative", flexShrink: 0 }}>
+              {!videoReady ? (
+                <label className="upload-zone" style={{
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  minHeight: 220, cursor: "pointer", background: "#060d1a", position: "relative", transition: "all 0.2s",
+                }}>
+                  <input type="file" accept="video/*" onChange={handleVideoLoad} style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer" }} />
+                  <div style={{ fontSize: 40, marginBottom: 10 }}>🎥</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#f97316", marginBottom: 6 }}>Upload Cricket Video</div>
+                  <div style={{ fontSize: 11, color: "#334155", textAlign: "center", lineHeight: 1.6 }}>
+                    MP4, MOV, WebM — any length<br />Frames sent to Gemini AI every {FRAME_INTERVAL_SEC}s
+                  </div>
+                </label>
+              ) : (
+                <>
+                  {isRunning && (
+                    <div style={{ position: "absolute", top: 10, right: 10, zIndex: 10, background: "rgba(0,0,0,0.8)", borderRadius: 6, padding: "4px 10px", display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "#f97316" }}>
+                      <div style={{ width: 10, height: 10, border: "2px solid #f97316", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                      Generating...
+                    </div>
+                  )}
+                  {isRunning && (
+                    <div style={{ position: "absolute", top: 10, left: 10, zIndex: 10, background: "#ef4444", padding: "2px 7px", borderRadius: 4, fontSize: 9, fontWeight: 800, letterSpacing: 1, display: "flex", alignItems: "center", gap: 3 }}>
+                      <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#fff", animation: "liveDot 1s infinite" }} /> LIVE
+                    </div>
+                  )}
+                  <video ref={videoRef} style={{ width: "100%", maxHeight: 240, display: "block", objectFit: "contain" }} controls={!isRunning} playsInline />
+                </>
               )}
             </div>
-          )}
 
-          <div>
-            <div style={{ fontSize:10, color:"#e8b84b", letterSpacing:2, marginBottom:10 }}>COMMENTARY LANGUAGE</div>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-              {INDIAN_LANGUAGES.map(l => (
-                <div key={l.code} className="lang-chip" onClick={() => setLanguage(l.code)} style={{ padding:"6px 14px", borderRadius:20, border:`1px solid ${language===l.code?"#2d8a42":"#1a2a1a"}`, background:language===l.code?"rgba(45,138,66,0.2)":"transparent", color:language===l.code?"#4caf50":"#445", fontSize:13, fontWeight:language===l.code?700:400, cursor:"pointer", transition:"all 0.15s" }}>{l.label}</div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
-            <div>
-              <div style={{ fontSize:10, color:"#e8b84b", letterSpacing:2, marginBottom:8 }}>VOICE</div>
-              <div style={{ display:"flex", gap:8 }}>
-                {VOICE_OPTIONS.map(v => (
-                  <button key={v.id} onClick={() => setVoiceGender(v.id)} style={{ padding:"7px 16px", borderRadius:20, cursor:"pointer", border:`1px solid ${voiceGender===v.id?"#2d8a42":"#1a2a1a"}`, background:voiceGender===v.id?"rgba(45,138,66,0.2)":"transparent", color:voiceGender===v.id?"#4caf50":"#445", fontSize:13 }}>{v.emoji} {v.label}</button>
+            {/* Language selector */}
+            <div style={{ background: "#0a1628", borderRadius: 8, padding: "10px 12px", border: "1px solid #1e293b", flexShrink: 0 }}>
+              <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: 1.5, marginBottom: 8 }}>COMMENTARY LANGUAGE</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {INDIAN_LANGUAGES.map(l => (
+                  <div key={l.code} className="lang-chip" onClick={() => setLanguage(l.code)} style={{
+                    padding: "4px 10px", borderRadius: 16,
+                    border: `1px solid ${language === l.code ? "#f97316" : "#1e293b"}`,
+                    background: language === l.code ? "rgba(249,115,22,0.15)" : "transparent",
+                    color: language === l.code ? "#f97316" : "#475569",
+                    fontSize: 12, fontWeight: language === l.code ? 700 : 500,
+                    cursor: "pointer", transition: "all 0.15s",
+                  }}>{l.label}</div>
                 ))}
               </div>
             </div>
-            <div style={{ marginLeft:"auto" }}>
-              <div style={{ fontSize:10, color:"#e8b84b", letterSpacing:2, marginBottom:8 }}>TTS AUDIO</div>
-              <button onClick={() => setTtsEnabled(p => !p)} style={{ padding:"7px 20px", borderRadius:20, cursor:"pointer", border:`1px solid ${ttsEnabled?"#2d8a42":"#1a2a1a"}`, background:ttsEnabled?"rgba(45,138,66,0.2)":"transparent", color:ttsEnabled?"#4caf50":"#445", fontSize:13 }}>{ttsEnabled?"🔊 On":"🔇 Off"}</button>
-            </div>
-          </div>
 
-          {videoReady && (
-            <div style={{ display:"flex", gap:12 }}>
-              {!isRunning ? (
-                <button onClick={startCommentary} style={{ flex:1, background:"#1a5c2a", color:"#fff", border:"none", borderRadius:10, padding:"14px", fontSize:15, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>▶ Start AI Commentary</button>
-              ) : (
-                <button onClick={stopCommentary} style={{ flex:1, background:"#3a0a0a", color:"#ff6b6b", border:"1px solid #5a1a1a", borderRadius:10, padding:"14px", fontSize:15, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>⏹ Stop Commentary</button>
-              )}
-              <label style={{ background:"transparent", color:"#556", border:"1px solid #1a2a1a", borderRadius:10, padding:"14px 20px", fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", gap:8 }}>
-                <input type="file" accept="video/*" onChange={handleVideoLoad} style={{ display:"none" }} />🎥 Change
-              </label>
-            </div>
-          )}
-
-          {status==="error" && errorMsg && (
-            <div style={{ background:"rgba(229,57,53,0.1)", border:"1px solid #5a1a1a", borderRadius:8, padding:"10px 14px", fontSize:12, color:"#ff6b6b" }}>
-              ⚠ {errorMsg}
-              <button onClick={() => setShowSettings(true)} style={{ marginLeft:8, background:"none", border:"none", color:"#e8b84b", cursor:"pointer", fontSize:12 }}>→ Fix Keys</button>
-            </div>
-          )}
-
-          {commentary.length > 0 && (
-            <div style={{ display:"flex", gap:20, padding:"12px 16px", background:"#0d150d", borderRadius:8, border:"1px solid #1a2a1a", flexWrap:"wrap" }}>
-              {[{label:"FRAMES",val:frameCount},{label:"COMMENTARY",val:commentary.length},{label:"LANGUAGE",val:INDIAN_LANGUAGES.find(l=>l.code===language)?.name},{label:"TTS",val:ttsEnabled&&sarvamKey?"Active":"Off"}].map(s => (
-                <div key={s.label}>
-                  <div style={{ fontSize:9, color:"#334", letterSpacing:1 }}>{s.label}</div>
-                  <div style={{ fontSize:16, fontFamily:"'DM Mono',monospace", fontWeight:700, color:"#e8b84b" }}>{s.val}</div>
+            {/* Voice + TTS + Controls */}
+            <div style={{ background: "#0a1628", borderRadius: 8, padding: "10px 12px", border: "1px solid #1e293b", flexShrink: 0 }}>
+              <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: 1.5, marginBottom: 6 }}>VOICE</div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {VOICE_OPTIONS.map(v => (
+                      <button key={v.id} onClick={() => setVoiceGender(v.id)} style={{
+                        padding: "5px 12px", borderRadius: 16, cursor: "pointer",
+                        border: `1px solid ${voiceGender === v.id ? "#f97316" : "#1e293b"}`,
+                        background: voiceGender === v.id ? "rgba(249,115,22,0.15)" : "transparent",
+                        color: voiceGender === v.id ? "#f97316" : "#475569", fontSize: 12,
+                      }}>{v.emoji} {v.label}</button>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                <div>
+                  <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: 1.5, marginBottom: 6 }}>TTS AUDIO</div>
+                  <button onClick={() => setTtsEnabled(p => !p)} style={{
+                    padding: "5px 14px", borderRadius: 16, cursor: "pointer",
+                    border: `1px solid ${ttsEnabled ? "#f97316" : "#1e293b"}`,
+                    background: ttsEnabled ? "rgba(249,115,22,0.15)" : "transparent",
+                    color: ttsEnabled ? "#f97316" : "#475569", fontSize: 12,
+                  }}>{ttsEnabled ? "🔊 On" : "🔇 Off"}</button>
+                </div>
 
-        <div className="cr" style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 57px)", overflow:"hidden" }}>
-          <div style={{ padding:"16px 20px", borderBottom:"1px solid #1a2a1a", display:"flex", alignItems:"center", gap:8 }}>
-            <div style={{ width:8, height:8, borderRadius:"50%", background:isRunning?"#00e676":"#334", animation:isRunning?"pulse 1.2s infinite":"none" }} />
-            <span style={{ fontSize:11, color:"#e8b84b", letterSpacing:2 }}>LIVE COMMENTARY FEED</span>
-            {commentary.length>0 && <button onClick={() => setCommentary([])} style={{ marginLeft:"auto", background:"none", border:"none", color:"#334", cursor:"pointer", fontSize:11 }}>Clear</button>}
-          </div>
-          <div style={{ flex:1, overflowY:"auto", padding:"16px", display:"flex", flexDirection:"column", gap:10 }}>
-            {commentary.length===0 ? (
-              <div style={{ textAlign:"center", padding:"60px 20px", color:"#223" }}>
-                <div style={{ fontSize:40, marginBottom:12 }}>🏏</div>
-                <div style={{ fontSize:13, lineHeight:1.7 }}>Upload a cricket video clip<br/>and hit <strong style={{ color:"#2d8a42" }}>Start AI Commentary</strong><br/>to see live commentary here</div>
+                {/* Main action button */}
+                {videoReady && (
+                  <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                    {!isRunning ? (
+                      <button onClick={startCommentary} style={{
+                        background: "linear-gradient(135deg,#f97316,#ea580c)", color: "#fff",
+                        border: "none", borderRadius: 8, padding: "8px 18px",
+                        fontSize: 13, fontWeight: 700, cursor: "pointer",
+                        display: "flex", alignItems: "center", gap: 6,
+                      }}>▶ Start AI Commentary</button>
+                    ) : (
+                      <button onClick={stopCommentary} style={{
+                        background: "rgba(239,68,68,0.1)", color: "#ef4444",
+                        border: "1px solid #7f1d1d", borderRadius: 8, padding: "8px 18px",
+                        fontSize: 13, fontWeight: 700, cursor: "pointer",
+                      }}>⏹ Stop</button>
+                    )}
+                    <label style={{
+                      background: "transparent", color: "#475569", border: "1px solid #1e293b",
+                      borderRadius: 8, padding: "8px 12px", fontSize: 12, cursor: "pointer",
+                      display: "flex", alignItems: "center", gap: 5,
+                    }}>
+                      <input type="file" accept="video/*" onChange={handleVideoLoad} style={{ display: "none" }} />
+                      🎥 Change
+                    </label>
+                  </div>
+                )}
               </div>
-            ) : commentary.map((item,i) => <CommentaryBubble key={item.id} item={item} isLatest={i===0} />)}
+            </div>
+
+            {/* Error */}
+            {status === "error" && errorMsg && (
+              <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid #7f1d1d", borderRadius: 8, padding: "8px 12px", fontSize: 11, color: "#ef4444", flexShrink: 0 }}>
+                ⚠ {errorMsg}
+                <button onClick={() => setShowSettings(true)} style={{ marginLeft: 8, background: "none", border: "none", color: "#f97316", cursor: "pointer", fontSize: 11 }}>→ Fix Keys</button>
+              </div>
+            )}
+
+            {/* Stats bar */}
+            {commentary.length > 0 && (
+              <div style={{ display: "flex", gap: 16, padding: "8px 14px", background: "#0a1628", borderRadius: 8, border: "1px solid #1e293b", flexWrap: "wrap", flexShrink: 0 }}>
+                {[
+                  { label: "FRAMES",     val: frameCount },
+                  { label: "COMMENTARY", val: commentary.length },
+                  { label: "LANGUAGE",   val: INDIAN_LANGUAGES.find(l => l.code === language)?.name },
+                  { label: "TTS",        val: ttsEnabled && sarvamKey ? "Active" : "Off" },
+                ].map(s => (
+                  <div key={s.label}>
+                    <div style={{ fontSize: 8, color: "#334155", letterSpacing: 1 }}>{s.label}</div>
+                    <div style={{ fontSize: 15, fontFamily: "monospace", fontWeight: 700, color: "#f97316" }}>{s.val}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <div style={{ padding:"10px 16px", borderTop:"1px solid #1a2a1a", display:"flex" }}>
-            <div style={{ fontSize:9, color:"#223" }}>Gemini 2.0 Flash · Sarvam Bulbul v2</div>
-            <div style={{ fontSize:9, color:"#334", marginLeft:"auto" }}>Frame every {FRAME_INTERVAL_SEC}s</div>
+
+          {/* ── Right Panel: Live Commentary Feed ── */}
+          <div style={{ width: 320, borderLeft: "1px solid #1e293b", background: "#0a1628", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+
+            {/* Feed header with tabs */}
+            <div style={{ borderBottom: "1px solid #1e293b" }}>
+              <div style={{ display: "flex", alignItems: "center", padding: "8px 12px 0" }}>
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: isRunning ? "#22c55e" : "#334155", animation: isRunning ? "liveDot 1.2s infinite" : "none", marginRight: 6 }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#f97316", letterSpacing: 1.5 }}>LIVE COMMENTARY FEED</span>
+                {commentary.length > 0 && (
+                  <button onClick={() => setCommentary([])} style={{ marginLeft: "auto", background: "none", border: "none", color: "#334155", cursor: "pointer", fontSize: 10 }}>Clear</button>
+                )}
+              </div>
+              <div style={{ display: "flex", padding: "0 4px" }}>
+                {[["commentary", "🎙 Commentary"], ["stats", "📊 Stats"]].map(([tab, label]) => (
+                  <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                    padding: "6px 10px", background: "none", border: "none",
+                    borderBottom: activeTab === tab ? "2px solid #f97316" : "2px solid transparent",
+                    color: activeTab === tab ? "#f97316" : "#475569",
+                    cursor: "pointer", fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
+                  }}>{label}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Feed body */}
+            {activeTab === "commentary" && (
+              <div style={{ flex: 1, overflowY: "auto", padding: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+                {commentary.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "50px 16px", color: "#1e293b" }}>
+                    <div style={{ fontSize: 36, marginBottom: 10 }}>🏏</div>
+                    <div style={{ fontSize: 12, lineHeight: 1.7, color: "#334155" }}>
+                      Upload a cricket video<br />and hit <strong style={{ color: "#f97316" }}>Start AI Commentary</strong><br />to see live feed here
+                    </div>
+                  </div>
+                ) : (
+                  commentary.map((item, i) => (
+                    <CommentaryBubble key={item.id} item={item} isLatest={i === 0} />
+                  ))
+                )}
+              </div>
+            )}
+
+            {activeTab === "stats" && (
+              <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  { label: "Total Frames Analyzed", val: frameCount, color: "#f97316" },
+                  { label: "Commentary Generated",  val: commentary.length, color: "#3b82f6" },
+                  { label: "TTS Clips Played",      val: commentary.filter(c => c.tts).length, color: "#22c55e" },
+                  { label: "Current Language",      val: INDIAN_LANGUAGES.find(l => l.code === language)?.name, color: "#a855f7" },
+                  { label: "Frame Interval",        val: `${FRAME_INTERVAL_SEC}s`, color: "#f97316" },
+                  { label: "AI Model",              val: GEMINI_MODEL, color: "#64748b" },
+                  { label: "TTS Status",            val: ttsEnabled && sarvamKey ? "Active" : "Off", color: ttsEnabled && sarvamKey ? "#22c55e" : "#ef4444" },
+                ].map(s => (
+                  <div key={s.label} style={{ background: "#060d1a", borderRadius: 6, padding: "8px 10px", border: "1px solid #1e293b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 10, color: "#475569" }}>{s.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: s.color, fontFamily: "monospace" }}>{s.val}</span>
+                  </div>
+                ))}
+
+                {/* Sixes/Fours/Wickets detected from commentary text */}
+                {commentary.length > 0 && (() => {
+                  const sixes   = commentary.filter(c => /\bSIX\b/i.test(c.text)).length;
+                  const fours   = commentary.filter(c => /\bFOUR\b/i.test(c.text)).length;
+                  const wickets = commentary.filter(c => /\bWICKET\b/i.test(c.text)).length;
+                  return (
+                    <div style={{ background: "#060d1a", borderRadius: 6, padding: "10px", border: "1px solid #1e293b" }}>
+                      <div style={{ fontSize: 9, color: "#475569", fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>AI DETECTED EVENTS</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+                        {[["6s", sixes, "#f97316"], ["4s", fours, "#3b82f6"], ["W", wickets, "#ef4444"]].map(([label, count, color]) => (
+                          <div key={label} style={{ textAlign: "center", background: `${color}10`, border: `1px solid ${color}30`, borderRadius: 6, padding: "6px" }}>
+                            <div style={{ fontSize: 18, fontWeight: 800, color }}>{count}</div>
+                            <div style={{ fontSize: 9, color: "#475569" }}>{label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Footer */}
+            <div style={{ padding: "6px 12px", borderTop: "1px solid #1e293b", display: "flex", justifyContent: "space-between" }}>
+              <div style={{ fontSize: 8, color: "#1e293b" }}>Gemini 2.0 Flash · Sarvam Bulbul v2</div>
+              <div style={{ fontSize: 8, color: "#1e293b" }}>Frame every {FRAME_INTERVAL_SEC}s</div>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
