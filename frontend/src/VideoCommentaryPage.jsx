@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
 const GEMINI_MODEL = "gemini-2.5-flash";
-const FRAME_INTERVAL_SEC = 10;
+const FRAME_INTERVAL_SEC = 15;
 
 const INDIAN_LANGUAGES = [
   { code: "hi", label: "हिंदी",    name: "Hindi"     },
@@ -191,21 +191,40 @@ function PitchSVG({ style }) {
 
 async function extractAudioChunk(videoEl, durationSec = 8) {
   return new Promise((resolve, reject) => {
-    const stream = videoEl.captureStream ? videoEl.captureStream() : videoEl.mozCaptureStream();
-    const audioTracks = stream.getAudioTracks();
-    if (!audioTracks.length) return reject(new Error("No audio track"));
-    const audioStream = new MediaStream(audioTracks);
-    const recorder = new MediaRecorder(audioStream, { mimeType: "audio/webm" });
-    const chunks = [];
-    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-    recorder.onstop = async () => {
-      const blob = new Blob(chunks, { type: "audio/webm" });
-      const ab = await blob.arrayBuffer();
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(ab)));
-      resolve(b64);
-    };
-    recorder.start();
-    setTimeout(() => recorder.stop(), durationSec * 1000);
+    try {
+      const stream = videoEl.captureStream
+        ? videoEl.captureStream()
+        : videoEl.mozCaptureStream
+        ? videoEl.mozCaptureStream()
+        : null;
+      if (!stream) return reject(new Error("captureStream not supported"));
+      const tracks = stream.getAudioTracks();
+      if (!tracks.length) return reject(new Error("No audio track found"));
+      const audioStream = new MediaStream(tracks);
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : "";
+      const recorder = new MediaRecorder(audioStream, mimeType ? { mimeType } : {});
+      const chunks = [];
+      recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+      recorder.onerror = e => reject(new Error("Recorder error: " + e.error));
+      recorder.onstop = async () => {
+        if (!chunks.length) return reject(new Error("No audio data captured"));
+        const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+        const ab = await blob.arrayBuffer();
+        const bytes = new Uint8Array(ab);
+        let b64 = "";
+        const chunkSize = 8192;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          b64 += btoa(String.fromCharCode(...bytes.subarray(i, i + chunkSize)));
+        }
+        resolve(b64);
+      };
+      recorder.start(100);
+      setTimeout(() => { if (recorder.state !== "inactive") recorder.stop(); }, durationSec * 1000);
+    } catch(e) { reject(e); }
   });
 }
 
