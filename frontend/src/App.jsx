@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import HomePage from "./HomePage.jsx";
 import ScoresPage from "./ScoresPage.jsx";
 import VideoCommentaryPage from "./VideoCommentaryPage.jsx";
+import CommentaryPanel from "./CommentaryPanel.jsx";
 
 const WS_SCORES = import.meta.env.VITE_WS_SCORES || "ws://localhost:8000/ws/scores";
 const WS_AUDIO  = import.meta.env.VITE_WS_AUDIO  || "ws://localhost:8000/tts/ws/audio";
@@ -542,62 +543,9 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right sidebar */}
-        <div style={{ gridColumn: "2", gridRow: "1 / 4", display: "flex", flexDirection: "column", borderLeft: "1px solid #e8e8e8", background: "#f9f9f9", overflow: "hidden" }}>
-
-          {/* Scorecard */}
-          <div style={{ padding: "16px", overflowY: "auto", maxHeight: "55%", borderBottom: "1px solid #e8e8e8" }}>
-            <div style={{ fontSize: 9, color: "#c4956a", letterSpacing: 2, textTransform: "uppercase", marginBottom: 14 }}>Scorecard</div>
-
-            {[activeMatch.team1, activeMatch.team2].map((team, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: i === 0 ? "#1e2e22" : "#1a1a18", border: "1px solid " + (i === 0 ? "#2d5a3d" : "#2a2a28"), marginBottom: 8, animation: "fadeUp 0.4s ease" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 18 }}>{team.flag}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1a1a18" }}>{team.name}</span>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 18, fontFamily: "'JetBrains Mono', monospace", fontWeight: 800, color: i === 0 ? "#00e676" : "#8a8578" }}>{team.score}</div>
-                  <div style={{ fontSize: 10, color: "#6b6560" }}>({team.overs})</div>
-                </div>
-              </div>
-            ))}
-
-            <div style={{ padding: "10px 12px", borderRadius: 8, background: "#f0f0f0", border: "1px solid #e0e0e0", fontSize: 11, color: "#c4956a", fontWeight: 600, marginBottom: 14 }}>
-              {activeMatch.status}
-            </div>
-
-            <div style={{ fontSize: 9, color: "#6a6a68", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Batting</div>
-            {[activeMatch.batter1, activeMatch.batter2].map((b, i) => (
-              <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #e8e8e8" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                  <span style={{ fontSize: 12, color: i === 0 ? "#faf7f2" : "#8a8578", fontWeight: i === 0 ? 700 : 400 }}>{i === 0 ? "* " : ""}{b.name}</span>
-                  <span style={{ fontSize: 14, fontFamily: "'JetBrains Mono', monospace", fontWeight: 900, color: i === 0 ? "#00e676" : "#6b6560" }}>{b.runs}</span>
-                </div>
-                <div style={{ display: "flex", gap: 10, fontSize: 10, color: "#6b6560" }}>
-                  <span>{b.balls}b</span>
-                  <span style={{ color: b.sr > 150 ? "#00e676" : b.sr > 80 ? "#faad14" : "#ff4d4f" }}>SR {b.sr}</span>
-                  <span>{b.fours}x4</span>
-                  <span>{b.sixes}x6</span>
-                </div>
-              </div>
-            ))}
-
-            <div style={{ fontSize: 9, color: "#6a6a68", letterSpacing: 1, textTransform: "uppercase", margin: "12px 0 8px" }}>Bowling</div>
-            <div style={{ padding: "8px 0" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ fontSize: 12, color: "#1a1a18", fontWeight: 700 }}>{activeMatch.bowler.name}</span>
-                <span style={{ fontSize: 14, fontFamily: "'JetBrains Mono', monospace", fontWeight: 900, color: "#ff4d4f" }}>{activeMatch.bowler.wkts}/{activeMatch.bowler.runs}</span>
-              </div>
-              <div style={{ display: "flex", gap: 10, fontSize: 10, color: "#6b6560" }}>
-                <span>{activeMatch.bowler.overs} ov</span>
-                <span>Econ {activeMatch.bowler.econ}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Live Chat */}
-          <LiveChat />
-
+        {/* Right sidebar — AI Commentary Panel */}
+        <div style={{ gridColumn: "2", gridRow: "1 / 4", display: "flex", flexDirection: "column", borderLeft: "1px solid #e8e8e8", overflow: "hidden" }}>
+          <CommentaryPanel />
         </div>
 
       </div>
