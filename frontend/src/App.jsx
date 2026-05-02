@@ -174,16 +174,14 @@ function CommentaryBubble({ item, isNew }) {
   );
 }
 
-function YTSearch() {
+function YTSearch({ onSelectVideo }) {
   const [query, setQuery] = useState("IPL cricket live");
   const [results, setResults] = useState([]);
-  const [activeVideo, setActiveVideo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const doSearch = async () => {
     setLoading(true);
-    setActiveVideo(null);
     setError(null);
     try {
       const res = await fetch("/api/search?q=" + encodeURIComponent(query));
@@ -214,29 +212,12 @@ function YTSearch() {
           {loading ? "..." : "Search"}
         </button>
       </div>
-      {sharedVideoSrc && !activeVideo && (
-        <div style={{ borderBottom:"1px solid #e8e8e8" }}>
-          <video src={sharedVideoSrc} style={{ width:"100%", maxHeight:220, display:"block", background:"#000", objectFit:"contain" }} controls playsInline />
-        </div>
-      )}
-      {activeVideo ? (
-        <div style={{ display:"flex", flexDirection:"column" }}>
-          <iframe
-            src={"https://www.youtube.com/embed/" + activeVideo + "?autoplay=1"}
-            style={{ width:"100%", height:220, border:"none" }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
-            allowFullScreen={true}
-          />
-          <button onClick={() => setActiveVideo(null)} style={{ margin:"8px 12px", background:"#f0f0f0", border:"1px solid #e0e0e0", borderRadius:8, padding:"6px 12px", fontSize:11, cursor:"pointer", color:"#1a1a18" }}>
-            Back to results
-          </button>
-        </div>
-      ) : (
-        <div style={{ flex:1, overflowY:"auto" }}>
+
+      <div style={{ flex:1, overflowY:"auto" }}>
           {error && <div style={{ padding:16, fontSize:12, color:"#cc0000", textAlign:"center" }}>⚠️ {error}</div>}
           {loading && <div style={{ padding:30, fontSize:12, color:"#aaa", textAlign:"center" }}>🔴 Finding live streams...</div>}
           {results.map(v => (
-            <div key={v.videoId} onClick={() => setActiveVideo(v.videoId)}
+            <div key={v.videoId} onClick={() => { if (onSelectVideo) onSelectVideo(v.videoId); }}
               style={{ display:"flex", gap:10, padding:"10px 12px", borderBottom:"1px solid #f0f0f0", cursor:"pointer", alignItems:"center" }}>
               <img src={v.thumbnail} style={{ width:80, height:45, borderRadius:6, objectFit:"cover", flexShrink:0 }} alt="" />
               <div style={{ flex:1, minWidth:0 }}>
@@ -247,7 +228,6 @@ function YTSearch() {
             </div>
           ))}
         </div>
-      )}
     </div>
   );
 }
@@ -347,6 +327,7 @@ export default function App() {
   const [screen, setScreen]               = useState("home");
   const [matches, setMatches]             = useState(MOCK_MATCHES);
   const [sharedVideoSrc, setSharedVideoSrc] = useState("");
+  const [activeVideoId, setActiveVideoId] = useState("");
   const [sharedVideoSrc, setSharedVideoSrc] = useState("");
   const [activeId, setActiveId]           = useState(MOCK_MATCHES[0].id);
   const [commentary, setCommentary]       = useState([]);
@@ -496,9 +477,34 @@ export default function App() {
       {/* Main grid */}
       <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 300px", gridTemplateRows: "auto auto 1fr", overflow: "hidden", minHeight: 0 }}>
 
-        {/* YouTube */}
-        <div style={{ gridColumn: "1", gridRow: "1", background: "#f5f5f5", borderBottom: "1px solid #e8e8e8", height: 270 }}>
-          <YTSearch sharedVideoSrc={sharedVideoSrc} />
+        {/* Single unified player */}
+        <div style={{ gridColumn: "1", gridRow: "1", background: "#000", borderBottom: "1px solid #e8e8e8", height: 270, position: "relative" }}>
+          {activeVideoId ? (
+            <iframe
+              src={"https://www.youtube.com/embed/" + activeVideoId + "?autoplay=1"}
+              style={{ width: "100%", height: "100%", border: "none", display: "block" }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          ) : sharedVideoSrc ? (
+            <video
+              id="main-video-player"
+              src={sharedVideoSrc}
+              style={{ width: "100%", height: "100%", display: "block", objectFit: "contain" }}
+              controls
+              playsInline
+            />
+          ) : (
+            <YTSearch onSelectVideo={setActiveVideoId} />
+          )}
+          {(activeVideoId || sharedVideoSrc) && (
+            <button
+              onClick={() => { setActiveVideoId(""); setSharedVideoSrc(""); }}
+              style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.7)", color: "#fff", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer", zIndex: 10 }}
+            >
+              ← Search
+            </button>
+          )}
         </div>
 
         {/* Ball by Ball */}
@@ -552,7 +558,7 @@ export default function App() {
 
         {/* Right sidebar — AI Commentary Panel */}
         <div style={{ gridColumn: "2", gridRow: "1 / 4", display: "flex", flexDirection: "column", borderLeft: "1px solid #e8e8e8", overflow: "hidden" }}>
-          <CommentaryPanel onVideoLoad={setSharedVideoSrc} />
+          <CommentaryPanel onVideoLoad={setSharedVideoSrc} onYtUrl={setActiveVideoId} />
         </div>
 
       </div>
