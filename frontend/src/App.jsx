@@ -214,6 +214,11 @@ function YTSearch() {
           {loading ? "..." : "Search"}
         </button>
       </div>
+      {sharedVideoSrc && !activeVideo && (
+        <div style={{ borderBottom:"1px solid #e8e8e8" }}>
+          <video src={sharedVideoSrc} style={{ width:"100%", maxHeight:220, display:"block", background:"#000", objectFit:"contain" }} controls playsInline />
+        </div>
+      )}
       {activeVideo ? (
         <div style={{ display:"flex", flexDirection:"column" }}>
           <iframe
@@ -341,6 +346,8 @@ async function fetchLiveMatches(apiKey) {
 export default function App() {
   const [screen, setScreen]               = useState("home");
   const [matches, setMatches]             = useState(MOCK_MATCHES);
+  const [sharedVideoSrc, setSharedVideoSrc] = useState("");
+  const [sharedVideoSrc, setSharedVideoSrc] = useState("");
   const [activeId, setActiveId]           = useState(MOCK_MATCHES[0].id);
   const [commentary, setCommentary]       = useState([]);
   const [activeLanguage, setActiveLanguage] = useState("en");
@@ -491,7 +498,7 @@ export default function App() {
 
         {/* YouTube */}
         <div style={{ gridColumn: "1", gridRow: "1", background: "#f5f5f5", borderBottom: "1px solid #e8e8e8", height: 270 }}>
-          <YTSearch />
+          <YTSearch sharedVideoSrc={sharedVideoSrc} />
         </div>
 
         {/* Ball by Ball */}
@@ -545,7 +552,7 @@ export default function App() {
 
         {/* Right sidebar — AI Commentary Panel */}
         <div style={{ gridColumn: "2", gridRow: "1 / 4", display: "flex", flexDirection: "column", borderLeft: "1px solid #e8e8e8", overflow: "hidden" }}>
-          <CommentaryPanel />
+          <CommentaryPanel onVideoLoad={setSharedVideoSrc} />
         </div>
 
       </div>
