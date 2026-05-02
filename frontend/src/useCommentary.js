@@ -30,35 +30,23 @@ const SARVAM_LANG = {
   ml:"ml-IN", en:"en-IN",
 };
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-2.5-flash";
 const CHUNK_SEC = 10;
 
-async function extractAudioChunk(videoEl, durationSec) {
-  return new Promise((resolve, reject) => {
-    try {
-      const stream = videoEl.captureStream?.() || videoEl.mozCaptureStream?.();
-      if (!stream) return reject(new Error("captureStream not supported in this browser"));
-      const tracks = stream.getAudioTracks();
-      if (!tracks.length) return reject(new Error("No audio track found in this video"));
-      const mimeType = ["audio/webm;codecs=opus","audio/webm","audio/ogg"].find(t => MediaRecorder.isTypeSupported(t)) || "";
-      const recorder = new MediaRecorder(new MediaStream(tracks), mimeType ? { mimeType } : {});
-      const chunks = [];
-      recorder.ondataavailable = e => { if (e.data?.size > 0) chunks.push(e.data); };
-      recorder.onerror = e => reject(new Error("Recorder: " + e.error));
-      recorder.onstop = async () => {
-        if (!chunks.length) return reject(new Error("No audio data captured"));
-        const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
-        const ab = await blob.arrayBuffer();
-        const bytes = new Uint8Array(ab);
-        let b64 = "";
-        for (let i = 0; i < bytes.length; i += 8192)
-          b64 += btoa(String.fromCharCode(...bytes.subarray(i, i + 8192)));
-        resolve(b64);
-      };
-      recorder.start(100);
-      setTimeout(() => { if (recorder.state !== "inactive") recorder.stop(); }, durationSec * 1000);
-    } catch(e) { reject(e); }
-  });
+function extractFrame(videoEl) {
+  const canvas = document.createElement("canvas");
+  const w = videoEl.videoWidth  || 640;
+  const h = videoEl.videoHeight || 360;
+  const scale = Math.min(1, 720 / Math.max(w, h));
+  canvas.width  = Math.floor(w * scale);
+  canvas.height = Math.floor(h * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+  const parts = dataUrl.split(",");
+  if (parts.length < 2 || !parts[1]) throw new Error("Frame capture failed — video not ready");
+  return parts[1];
 }
 
 async function callGemini(base64Audio, language, geminiKey, previousText, personalityId) {
@@ -82,7 +70,7 @@ Respond with ONLY the commentary text. No labels, no explanations.`;
       body: JSON.stringify({
         contents: [{ parts: [
           { text: prompt },
-          { inline_data: { mime_type: "audio/webm", data: base64Audio } },
+          { inline_data: { mime_type: "image/jpeg", data: base64Audio } },
         ]}],
         generationConfig: { temperature: 1.0, maxOutputTokens: 250 },
       }),
@@ -163,7 +151,7 @@ export function useCommentary() {
     if (!vid || vid.paused || vid.ended) return;
     setStatus("processing");
     try {
-      const audio = await extractAudioChunk(vid, CHUNK_SEC);
+      const audio = extractFrame(vid);
       setChunkCount(n => n + 1);
       const text = await callGemini(audio, language, geminiKey, latestRef.current, personality);
       if (!text) { setStatus("idle"); return; }
