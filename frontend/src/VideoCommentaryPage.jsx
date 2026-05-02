@@ -294,17 +294,54 @@ function extractFrame(videoEl, canvas) {
   return parts[1];
 }
 
-async function getGeminiCommentary(base64Frame, language, geminiKey, personality, batter, bowler, previousText = "") {
+async function extractAudioChunk(videoEl, durationSec = 3) {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const stream = videoEl.captureStream ? videoEl.captureStream() : null;
+    if (!stream) return null;
+    const audioTracks = stream.getAudioTracks();
+    if (!audioTracks.length) return null;
+    const mediaStream = new MediaStream(audioTracks);
+    const source = audioCtx.createMediaStreamSource(mediaStream);
+    const sampleRate = audioCtx.sampleRate;
+    const frameCount = Math.floor(sampleRate * durationSec);
+    const offlineCtx = new OfflineAudioContext(1, frameCount, sampleRate);
+    const offlineSource = offlineCtx.createBufferSource();
+    const recorder = new MediaRecorder(mediaStream, { mimeType: "audio/webm;codecs=opus" });
+    const chunks = [];
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    recorder.start();
+    await new Promise(r => setTimeout(r, durationSec * 1000));
+    recorder.stop();
+    await new Promise(r => { recorder.onstop = r; });
+    audioCtx.close();
+    const blob = new Blob(chunks, { type: "audio/webm" });
+    const arrayBuf = await blob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuf);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return { data: btoa(binary), mimeType: "audio/webm" };
+  } catch (e) {
+    console.warn("Audio capture failed:", e.message);
+    return null;
+  }
+}
+
+async function getGeminiCommentary(base64Frame, audioChunk, language, geminiKey, personality, batter, bowler, previousText = "") {
   const langName = INDIAN_LANGUAGES.find(l => l.code === language)?.name || "Hindi";
   const persona = PERSONALITIES.find(p => p.id === personality) || PERSONALITIES[0];
   const prompt = persona.buildPrompt(langName, batter.trim(), bowler.trim(), previousText);
+  const parts = [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64Frame } }];
+  if (audioChunk) {
+    parts.push({ inline_data: { mime_type: audioChunk.mimeType, data: audioChunk.data } });
+  }
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64Frame } }] }],
+        contents: [{ parts }],
         generationConfig: { temperature: 0.95, maxOutputTokens: 600 },
       }),
     }
@@ -483,9 +520,12 @@ export default function VideoCommentaryPage({ onBack }) {
     }
     setStatus("processing");
     try {
-      const frame = extractFrame(vid, canvasRef.current);
+      const [frame, audioChunk] = await Promise.all([
+        Promise.resolve(extractFrame(vid, canvasRef.current)),
+        extractAudioChunk(vid, Math.min(FRAME_INTERVAL_SEC, 3)),
+      ]);
       setFrameCount(n => n + 1);
-      const text = await getGeminiCommentary(frame, language, geminiKey, personality, favBatter, favBowler, latestRef.current);
+      const text = await getGeminiCommentary(frame, audioChunk, language, geminiKey, personality, favBatter, favBowler, latestRef.current);
       if (!text) { setStatus("idle"); return; }
       latestRef.current = text;
       if (/\bSIX\b/i.test(text)) { setShowSix(true); setTimeout(() => setShowSix(false), 2800); }
