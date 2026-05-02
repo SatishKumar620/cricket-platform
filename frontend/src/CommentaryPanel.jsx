@@ -61,7 +61,7 @@ function FeedBubble({ item, isLatest }) {
   );
 }
 
-export default function CommentaryPanel() {
+export default function CommentaryPanel({ onVideoLoad, onYtUrl }) {
   const hook = useCommentary();
   const [showKeys,   setShowKeys]   = useState(false);
   const [videoReady, setVideoReady] = useState(false);
@@ -92,6 +92,7 @@ export default function CommentaryPanel() {
     setVideoSrc(url);
     setVideoName(file.name);
     setVideoReady(false);
+    if (onVideoLoad) onVideoLoad(url);
   };
 
   // Once videoSrc set, wait for metadata
@@ -112,18 +113,29 @@ export default function CommentaryPanel() {
 
   const loadYtUrl = () => {
     const id = extractYtId(ytUrl);
-    if (id) { setYtVideoId(id); hook.clearFeed(); }
-    else alert("Invalid YouTube URL — paste a full youtube.com/watch?v= link");
+    if (id) {
+      setYtVideoId(id);
+      hook.clearFeed();
+      if (onYtUrl) onYtUrl(id);
+    } else alert("Invalid YouTube URL — paste a full youtube.com/watch?v= link");
   };
 
   const handleStart = () => {
     if (!hook.geminiKey) { setShowKeys(true); return; }
+    // Always use the main unified player
+    const mainPlayer = document.getElementById("main-video-player");
+    if (mainPlayer && mainPlayer.src) {
+      const ok = hook.start(mainPlayer);
+      if (!ok) setShowKeys(true);
+      return;
+    }
+    // Fallback to hidden ref for uploaded video
     if (sourceMode === "upload") {
       if (!videoRef.current || !videoReady) return;
       const ok = hook.start(videoRef.current);
       if (!ok) setShowKeys(true);
     } else {
-      alert("YouTube audio capture is blocked by browser security (CORS).\n\nTip: Download the YouTube video as MP4 and upload it here for AI commentary!");
+      alert("Paste a YouTube URL and click Load first, or upload a video.");
     }
   };
 
@@ -167,73 +179,28 @@ export default function CommentaryPanel() {
         </div>
       </div>
 
-      {/* Source toggle */}
-      <div style={{ display:"flex", gap:6, padding:"10px 14px 8px", flexShrink:0 }}>
-        {["upload","youtube"].map(m => (
-          <button key={m} onClick={() => { setSourceMode(m); hook.stop(); }} style={{ padding:"5px 14px", borderRadius:6, border:"1px solid "+(sourceMode===m ? C.pitch2 : C.border), background:sourceMode===m ? C.pitch2 : "transparent", color:sourceMode===m ? "#fff" : C.muted, fontSize:11, fontWeight:600, cursor:"pointer", transition:"all 0.15s" }}>
-            {m==="upload" ? "📁 Upload Video" : "▶ YouTube URL"}
-          </button>
-        ))}
+      {/* Source controls */}
+      <div style={{ display:"flex", gap:6, padding:"10px 14px 8px", flexShrink:0, flexWrap:"wrap" }}>
+        <label style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 14px", borderRadius:6, border:"1px solid "+C.border, background:C.warm, cursor:"pointer", fontSize:11, fontWeight:600, color:C.ink }}>
+          <input type="file" accept="video/*" onChange={handleFile} style={{ display:"none" }} />
+          📁 Upload Video
+        </label>
+        <div style={{ display:"flex", gap:6, flex:1 }}>
+          <input value={ytUrl} onChange={e => setYtUrl(e.target.value)} onKeyDown={e => e.key==="Enter" && loadYtUrl()} placeholder="Paste YouTube URL..." style={{ flex:1, background:"#f5f5f5", border:"1px solid "+C.border, borderRadius:6, padding:"5px 10px", fontSize:11, color:C.ink, outline:"none", minWidth:0 }} />
+          <button onClick={loadYtUrl} style={{ background:"#ff0000", color:"#fff", border:"none", borderRadius:6, padding:"5px 10px", fontSize:11, fontWeight:700, cursor:"pointer", flexShrink:0 }}>▶</button>
+        </div>
       </div>
 
-      {/* Upload mode */}
-      {sourceMode === "upload" && (
-        <div style={{ padding:"0 14px 10px", flexShrink:0 }}>
-          {!videoSrc ? (
-            <label style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px", border:"1px dashed "+C.sand, borderRadius:10, cursor:"pointer", background:C.warm }}>
-              <input type="file" accept="video/*" onChange={handleFile} style={{ display:"none" }} />
-              <span style={{ fontSize:24 }}>🎥</span>
-              <div>
-                <div style={{ fontSize:12, fontWeight:600, color:C.ink }}>Click to upload cricket video</div>
-                <div style={{ fontSize:10, color:C.muted }}>MP4, MOV, WebM — audio extracted every 10s</div>
-              </div>
-            </label>
-          ) : (
-            <div style={{ borderRadius:10, overflow:"hidden", border:"1px solid "+C.border, background:"#000", position:"relative" }}>
-              <video
-                ref={videoRef}
-                style={{ width:"100%", maxHeight:200, display:"block", objectFit:"contain" }}
-                controls={!hook.isRunning}
-                playsInline
-                onEnded={() => hook.stop()}
-              />
-              {hook.isRunning && (
-                <div style={{ position:"absolute", top:8, left:8, background:"#c0392b", padding:"2px 8px", borderRadius:4, fontSize:9, fontWeight:800, color:"#fff", letterSpacing:1, display:"flex", alignItems:"center", gap:4 }}>
-                  <div style={{ width:5, height:5, borderRadius:"50%", background:"#fff", animation:"pulse 1s infinite" }} /> LIVE
-                </div>
-              )}
-              {hook.status==="processing" && (
-                <div style={{ position:"absolute", top:8, right:8, background:"rgba(0,0,0,0.75)", borderRadius:6, padding:"4px 10px", display:"flex", alignItems:"center", gap:6, fontSize:10, color:C.clay }}>
-                  <div style={{ width:10, height:10, border:"2px solid "+C.clay, borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.7s linear infinite" }} />
-                  Generating...
-                </div>
-              )}
-            </div>
-          )}
-          {videoSrc && (
-            <label style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:8, fontSize:11, color:C.muted, cursor:"pointer", padding:"4px 10px", border:"1px solid "+C.border, borderRadius:6 }}>
-              <input type="file" accept="video/*" onChange={handleFile} style={{ display:"none" }} />
-              🔄 Change video
-            </label>
-          )}
-        </div>
-      )}
-
-      {/* YouTube mode */}
-      {sourceMode === "youtube" && (
-        <div style={{ padding:"0 14px 10px", flexShrink:0 }}>
-          <div style={{ display:"flex", gap:8, marginBottom:8 }}>
-            <input value={ytUrl} onChange={e => setYtUrl(e.target.value)} onKeyDown={e => e.key==="Enter" && loadYtUrl()} placeholder="Paste YouTube URL..." style={{ flex:1, background:"#f5f5f5", border:"1px solid "+C.border, borderRadius:8, padding:"8px 12px", fontSize:12, color:C.ink, outline:"none" }} />
-            <button onClick={loadYtUrl} style={{ background:"#ff0000", color:"#fff", border:"none", borderRadius:8, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer" }}>Load</button>
+      {/* Active video status */}
+      {(videoName || ytVideoId) && (
+        <div style={{ margin:"0 14px 8px", padding:"6px 10px", background:C.warm, borderRadius:8, border:"1px solid "+C.sand, display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+          <span>{ytVideoId ? "▶" : "🎥"}</span>
+          <div style={{ fontSize:11, color:C.ink, fontWeight:600, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            {ytVideoId ? "YouTube video in player" : videoName}
           </div>
-          {ytVideoId && (
-            <div style={{ borderRadius:10, overflow:"hidden", border:"1px solid "+C.border }}>
-              <iframe src={"https://www.youtube.com/embed/"+ytVideoId+"?autoplay=1"} style={{ width:"100%", height:190, border:"none", display:"block" }} allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture" allowFullScreen />
-            </div>
-          )}
-          <div style={{ marginTop:8, fontSize:10, color:C.muted, fontStyle:"italic" }}>
-            💡 For AI commentary on YouTube videos, download as MP4 and use Upload mode.
-          </div>
+          {hook.isRunning && <div style={{ fontSize:9, fontWeight:800, color:"#fff", background:"#c0392b", padding:"2px 6px", borderRadius:4 }}>LIVE</div>}
+          {hook.status==="processing" && <div style={{ width:10, height:10, border:"2px solid "+C.clay, borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.7s linear infinite" }} />}
+          <video ref={videoRef} style={{ display:"none" }} playsInline onEnded={() => hook.stop()} />
         </div>
       )}
 
