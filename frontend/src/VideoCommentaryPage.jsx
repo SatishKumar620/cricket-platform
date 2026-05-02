@@ -31,6 +31,102 @@ const NAV_ITEMS = [
   { id: "settings",   label: "Settings"        },
 ];
 
+const PERSONALITIES = [
+  {
+    id: "harsha",
+    emoji: "🎙️",
+    label: "Harsha",
+    name: "Harsha Bhogle",
+    color: "#63B3ED",
+    buildPrompt: (langName, batter, bowler, prev) =>
+      `You are Harsha Bhogle, the legendary cricket storyteller. You speak with warmth, insight and narrative elegance. You build stories around players, connect moments to history, and make every ball feel meaningful. Speak in ${langName}.
+${batter ? `The favourite batter to watch is ${batter} — mention them naturally and with deep admiration when relevant.` : ""}
+${bowler ? `The favourite bowler to watch is ${bowler} — highlight their craft and strategy when relevant.` : ""}
+Generate exactly 3 fully complete sentences of live commentary. Every sentence must end with proper punctuation. Never cut off mid-sentence.
+${prev ? `Previous: "${prev.slice(-150)}" — continue the narrative naturally.` : ""}
+Respond with ONLY the commentary. No labels, no preamble.`,
+  },
+  {
+    id: "shastri",
+    emoji: "🔥",
+    label: "Shastri",
+    name: "Ravi Shastri",
+    color: "#FC8181",
+    buildPrompt: (langName, batter, bowler, prev) =>
+      `You are Ravi Shastri, the most dramatic cricket commentator alive. You SHOUT in capital letters for big moments. You use iconic phrases like "TRACER BULLET", "GONE FOR A KING", "ABSOLUTELY MAGNIFICENT". Every ball is the greatest thing you have ever seen. Speak in ${langName}.
+${batter ? `${batter} is your absolute favourite — you SCREAM their name with passion at every opportunity.` : ""}
+${bowler ? `${bowler} is a WARRIOR — you praise their aggression and fire every chance you get.` : ""}
+Generate exactly 3 fully complete, high-energy sentences. Every sentence must end properly. Never cut off.
+${prev ? `Previous: "${prev.slice(-150)}" — keep the energy going.` : ""}
+Respond with ONLY the commentary. No labels, no preamble.`,
+  },
+  {
+    id: "funny",
+    emoji: "😂",
+    label: "Funny",
+    name: "Comedy Box",
+    color: "#F6E05E",
+    buildPrompt: (langName, batter, bowler, prev) =>
+      `You are a hilarious cricket comedy commentator. You make clever jokes, cricket puns, and witty observations. You roast fielders for dropping catches, joke about the bowler's run-up, and find comedy in every delivery. Keep it fun but still describe the actual action. Speak in ${langName}.
+${batter ? `${batter} is your comedy target of affection — make funny but loving observations about them.` : ""}
+${bowler ? `${bowler} gives you comedy gold — funny takes on their bowling style.` : ""}
+Generate exactly 3 fully complete funny sentences. Every sentence must end properly. Never cut off.
+${prev ? `Previous: "${prev.slice(-150)}" — continue the comedic thread.` : ""}
+Respond with ONLY the commentary. No labels, no preamble.`,
+  },
+  {
+    id: "analyst",
+    emoji: "🧠",
+    label: "Analyst",
+    name: "The Analyst",
+    color: "#9F7AEA",
+    buildPrompt: (langName, batter, bowler, prev) =>
+      `You are a sharp, technical cricket analyst like a blend of Sanjay Manjrekar and Nasser Hussain. You break down foot movement, shot selection, field placement, bowling line and length with precision. You are slightly critical but always insightful. Speak in ${langName}.
+${batter ? `Pay special analytical attention to ${batter}'s technique — their stance, backlift and shot execution.` : ""}
+${bowler ? `Analyse ${bowler}'s bowling in detail — seam position, line, length and field placement strategy.` : ""}
+Generate exactly 3 fully complete analytical sentences. Every sentence must end properly. Never cut off.
+${prev ? `Previous: "${prev.slice(-150)}" — continue the analysis.` : ""}
+Respond with ONLY the commentary. No labels, no preamble.`,
+  },
+  {
+    id: "cinematic",
+    emoji: "🎬",
+    label: "Cinematic",
+    name: "Cinematic",
+    color: "#F6AD55",
+    buildPrompt: (langName, batter, bowler, prev) =>
+      `You are a Bollywood-style cinematic narrator describing cricket like an epic film. Use slow-motion language, dramatic pauses implied through sentence rhythm, poetic imagery, and treat every delivery like a climactic movie scene. Reference destiny, heroes and villains. Speak in ${langName}.
+${batter ? `${batter} is the hero of this epic — describe their every move with cinematic grandeur.` : ""}
+${bowler ? `${bowler} is the fierce antagonist — make them sound fearsome and relentless.` : ""}
+Generate exactly 3 fully complete cinematic sentences. Every sentence must end properly. Never cut off.
+${prev ? `Previous: "${prev.slice(-150)}" — continue the cinematic narrative.` : ""}
+Respond with ONLY the commentary. No labels, no preamble.`,
+  },
+  {
+    id: "global",
+    emoji: "🌍",
+    label: "Global",
+    name: "BBC/Sky Sports",
+    color: "#68D391",
+    buildPrompt: (langName, batter, bowler, prev) =>
+      `You are a polished BBC or Sky Sports English commentator — calm, classy, precise. You speak with authority and understated excitement. You paint a picture with clean professional language. Think Jonathan Agnew or Ian Smith. Speak in ${langName}.
+${batter ? `${batter} is the key player to follow — mention their contribution professionally when relevant.` : ""}
+${bowler ? `${bowler}'s bowling deserves respectful mention — acknowledge their skill with class.` : ""}
+Generate exactly 3 fully complete professional sentences. Every sentence must end properly. Never cut off.
+${prev ? `Previous: "${prev.slice(-150)}" — continue naturally.` : ""}
+Respond with ONLY the commentary. No labels, no preamble.`,
+  },
+];
+
+const NAV_ICONS = {
+  dashboard:  IcoDashboard,
+  upload:     IcoUpload,
+  commentary: IcoMic,
+  insights:   IcoChart,
+  highlights: IcoStar,
+  settings:   IcoSettings,
+};
+
 function IcoDashboard({ s = 16, c = "currentColor" }) {
   return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>;
 }
@@ -73,15 +169,9 @@ function IcoKey({ s = 16, c = "currentColor" }) {
 function IcoVideo({ s = 16, c = "currentColor" }) {
   return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>;
 }
-
-const NAV_ICONS = {
-  dashboard:  IcoDashboard,
-  upload:     IcoUpload,
-  commentary: IcoMic,
-  insights:   IcoChart,
-  highlights: IcoStar,
-  settings:   IcoSettings,
-};
+function IcoUser({ s = 16, c = "currentColor" }) {
+  return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+}
 
 function BallSVG({ size = 52, style }) {
   return (
@@ -204,16 +294,10 @@ function extractFrame(videoEl, canvas) {
   return parts[1];
 }
 
-async function getGeminiCommentary(base64Frame, language, geminiKey, previousText = "") {
+async function getGeminiCommentary(base64Frame, language, geminiKey, personality, batter, bowler, previousText = "") {
   const langName = INDIAN_LANGUAGES.find(l => l.code === language)?.name || "Hindi";
-  const prompt = `You are an electrifying cricket commentator.
-Given a video frame from a cricket match, generate 2-3 sentences of exciting live commentary in ${langName}.
-${language !== "en" ? `Write ONLY in ${langName} script. Use cricket-specific terminology naturally.` : ""}
-Keep it energetic, dramatic and authentic like a real broadcast commentator.
-Focus on: what the batsman is doing, field placement, bowler action, crowd reaction, or match situation visible.
-Do NOT mention that you are analyzing a frame or image. Speak as if watching live. Never refuse or apologize. Always generate commentary regardless of image quality.
-${previousText ? `Previous commentary: "${previousText.slice(-200)}" — continue naturally.` : ""}
-Respond with ONLY the commentary text, nothing else.`;
+  const persona = PERSONALITIES.find(p => p.id === personality) || PERSONALITIES[0];
+  const prompt = persona.buildPrompt(langName, batter.trim(), bowler.trim(), previousText);
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
     {
@@ -221,7 +305,7 @@ Respond with ONLY the commentary text, nothing else.`;
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64Frame } }] }],
-        generationConfig: { temperature: 0.9, maxOutputTokens: 200 },
+        generationConfig: { temperature: 0.95, maxOutputTokens: 600 },
       }),
     }
   );
@@ -279,12 +363,18 @@ function CommentaryBubble({ item, isLatest }) {
     FOUR:   { accent: "#2B6CB0", bg: "#0A0F1A", border: "#2C5282", badge: "#3182CE" },
     WICKET: { accent: "#C53030", bg: "#1A0A0A", border: "#9B2C2C", badge: "#E53E3E" },
   }[key] || { accent: "#276749", bg: "#0A1410", border: "#276749", badge: "#38A169" };
+  const persona = item.personality ? PERSONALITIES.find(p => p.id === item.personality) : null;
   return (
     <div style={{ padding: "12px 14px", borderRadius: 8, background: isLatest ? st.bg : "#0E1412", border: `1px solid ${isLatest ? st.border : "#1A2420"}`, borderLeft: `3px solid ${isLatest ? st.accent : "#1E2E28"}`, animation: isLatest ? "bubbleIn 0.3s ease" : "none" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6, flexWrap: "wrap" }}>
         <div style={{ width: 6, height: 6, borderRadius: "50%", background: isLatest ? st.accent : "#2D3D38", flexShrink: 0 }}/>
         <span style={{ fontSize: 10, color: "#4A6B60", letterSpacing: 0.6, fontWeight: 500 }}>{item.timestamp} · {item.lang}</span>
-        {key && <span style={{ marginLeft: 4, fontSize: 9, fontWeight: 800, color: "#fff", background: st.badge, padding: "1px 7px", borderRadius: 4, letterSpacing: 0.8 }}>{key}</span>}
+        {persona && (
+          <span style={{ fontSize: 9, fontWeight: 700, color: persona.color, background: `${persona.color}18`, border: `1px solid ${persona.color}40`, padding: "1px 6px", borderRadius: 4, letterSpacing: 0.5 }}>
+            {persona.emoji} {persona.label}
+          </span>
+        )}
+        {key && <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", background: st.badge, padding: "1px 7px", borderRadius: 4, letterSpacing: 0.8 }}>{key}</span>}
         {item.tts && <span style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}><IcoVolume s={11} c="#276749"/></span>}
       </div>
       <p style={{ fontSize: 13, lineHeight: 1.7, margin: 0, color: isLatest ? "#D4E8E0" : "#4A6B60", fontFamily: "'Noto Sans', sans-serif", fontWeight: isLatest ? 500 : 400 }}>
@@ -348,6 +438,9 @@ export default function VideoCommentaryPage({ onBack }) {
   const [videoName,    setVideoName]    = useState("");
   const [showSix,      setShowSix]      = useState(false);
   const [progress,     setProgress]     = useState(0);
+  const [personality,  setPersonality]  = useState("harsha");
+  const [favBatter,    setFavBatter]    = useState(() => localStorage.getItem("vc_fav_batter") || "");
+  const [favBowler,    setFavBowler]    = useState(() => localStorage.getItem("vc_fav_bowler") || "");
 
   const videoRef     = useRef(null);
   const canvasRef    = useRef(null);
@@ -356,11 +449,9 @@ export default function VideoCommentaryPage({ onBack }) {
   const isRunningRef = useRef(false);
   const { enqueue }  = useAudioQueue();
 
-  // Progress driven by real video currentTime/duration
   useEffect(() => {
     if (!videoReady) return;
-    const vid = videoRef.current;
-    if (!vid) return;
+    const vid = videoRef.current; if (!vid) return;
     const onTimeUpdate = () => {
       if (vid.duration && vid.duration > 0)
         setProgress((vid.currentTime / vid.duration) * 100);
@@ -372,8 +463,7 @@ export default function VideoCommentaryPage({ onBack }) {
   const handleVideoLoad = e => {
     const file = e.target.files?.[0]; if (!file) return;
     setVideoName(file.name);
-    const vid = videoRef.current;
-    if (!vid) return;
+    const vid = videoRef.current; if (!vid) return;
     clearInterval(timerRef.current);
     isRunningRef.current = false;
     setIsRunning(false);
@@ -385,19 +475,17 @@ export default function VideoCommentaryPage({ onBack }) {
   };
 
   const processFrame = useCallback(async () => {
-    const vid = videoRef.current;
-    if (!vid) return;
+    const vid = videoRef.current; if (!vid) return;
     if (vid.ended) {
       clearInterval(timerRef.current);
       isRunningRef.current = false;
-      setIsRunning(false); setStatus("idle");
-      return;
+      setIsRunning(false); setStatus("idle"); return;
     }
     setStatus("processing");
     try {
       const frame = extractFrame(vid, canvasRef.current);
       setFrameCount(n => n + 1);
-      const text = await getGeminiCommentary(frame, language, geminiKey, latestRef.current);
+      const text = await getGeminiCommentary(frame, language, geminiKey, personality, favBatter, favBowler, latestRef.current);
       if (!text) { setStatus("idle"); return; }
       latestRef.current = text;
       if (/\bSIX\b/i.test(text)) { setShowSix(true); setTimeout(() => setShowSix(false), 2800); }
@@ -410,21 +498,18 @@ export default function VideoCommentaryPage({ onBack }) {
         } catch (e) { console.warn("TTS:", e.message); }
       }
       setCommentary(prev => [{
-        id: Date.now(), text, lang: langLabel, tts: hasTts,
+        id: Date.now(), text, lang: langLabel, tts: hasTts, personality,
         timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
       }, ...prev].slice(0, 50));
       setStatus("idle");
     } catch (err) { setStatus("error"); setErrorMsg(err.message); }
-  }, [geminiKey, sarvamKey, language, voiceGender, ttsEnabled, enqueue]);
+  }, [geminiKey, sarvamKey, language, voiceGender, ttsEnabled, enqueue, personality, favBatter, favBowler]);
 
-  // FIX: await play() before first frame so vid.paused is never true on first call
   const startCommentary = useCallback(async () => {
     if (!geminiKey) { setShowSettings(true); return; }
     const vid = videoRef.current; if (!vid) return;
     setErrorMsg(""); setIsRunning(true); isRunningRef.current = true; setStatus("idle");
-    try {
-      await vid.play();
-    } catch (err) {
+    try { await vid.play(); } catch (err) {
       setErrorMsg("Playback failed: " + err.message);
       setIsRunning(false); isRunningRef.current = false; return;
     }
@@ -451,6 +536,8 @@ export default function VideoCommentaryPage({ onBack }) {
     border: "#152018", border2: "#1E2E28", accent: "#38A169", accentDim: "#276749",
     gold: "#D69E2E", text: "#C8E0D8", textMid: "#6B9080", textDim: "#3A5048", red: "#E53E3E",
   };
+  const currentPersona = PERSONALITIES.find(p => p.id === personality) || PERSONALITIES[0];
+  const inpStyle = { flex: 1, background: T.panel, border: `1px solid ${T.border2}`, borderRadius: 6, padding: "7px 10px", color: T.text, fontSize: 12, outline: "none", fontFamily: "inherit" };
 
   return (
     <div style={{ display: "flex", height: "100vh", background: T.bg, fontFamily: "'Inter','Segoe UI',sans-serif", color: T.text, overflow: "hidden", position: "relative" }}>
@@ -469,19 +556,13 @@ export default function VideoCommentaryPage({ onBack }) {
         .upload-z:hover  { border-color: #276749 !important; background: rgba(56,161,105,0.04) !important; }
         .act-btn:hover   { filter: brightness(1.12); transform: translateY(-1px); }
         .stop-btn:hover  { background: rgba(229,62,62,0.12) !important; }
+        .persona-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+        .player-inp:focus { border-color: #276749 !important; }
       `}</style>
 
-      {/* Always-mounted hidden video — FIX for videoRef being null */}
       <canvas ref={canvasRef} style={{ display: "none" }}/>
-      <video
-        ref={videoRef}
-        style={{ display: "none" }}
-        playsInline
-        onEnded={() => {
-          clearInterval(timerRef.current);
-          isRunningRef.current = false;
-          setIsRunning(false); setStatus("idle");
-        }}
+      <video ref={videoRef} style={{ display: "none" }} playsInline
+        onEnded={() => { clearInterval(timerRef.current); isRunningRef.current = false; setIsRunning(false); setStatus("idle"); }}
       />
 
       {showSix && (
@@ -572,6 +653,7 @@ export default function VideoCommentaryPage({ onBack }) {
 
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
           <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+
             <div style={{ borderRadius: 10, overflow: "hidden", border: `1px solid ${T.border}`, background: T.card, flexShrink: 0 }}>
               {!videoReady ? (
                 <label className="upload-z" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 220, cursor: "pointer", position: "relative", background: `linear-gradient(160deg, ${T.card} 0%, #0F1F18 100%)`, transition: "all 0.2s" }}>
@@ -580,8 +662,6 @@ export default function VideoCommentaryPage({ onBack }) {
                   <BatSVG width={30} height={100} style={{ position: "absolute", left: 60, bottom: 0, opacity: 0.1, transform: "rotate(-18deg) scaleX(-1)" }}/>
                   <WicketSVG width={48} height={78} style={{ position: "absolute", right: 20, bottom: 0, opacity: 0.1 }}/>
                   <WicketSVG width={40} height={65} style={{ position: "absolute", left: 20, bottom: 0, opacity: 0.08 }}/>
-                  <div style={{ position: "absolute", bottom: -50, left: "50%", transform: "translateX(-50%)", width: 340, height: 120, borderRadius: "50%", border: "1px solid rgba(56,161,105,0.1)" }}/>
-                  <div style={{ position: "absolute", bottom: -30, left: "50%", transform: "translateX(-50%)", width: 200, height: 80, borderRadius: "50%", border: "1px solid rgba(56,161,105,0.14)" }}/>
                   <div style={{ position: "relative", zIndex: 2, textAlign: "center" }}>
                     <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}><BallSVG size={56}/></div>
                     <div style={{ fontSize: 20, fontWeight: 800, color: "#E8F5F0", marginBottom: 6, letterSpacing: 0.3 }}>Upload Cricket Video</div>
@@ -605,14 +685,7 @@ export default function VideoCommentaryPage({ onBack }) {
                       Generating…
                     </div>
                   )}
-                  {/* Visible preview mirrors the hidden videoRef src */}
-                  <video
-                    src={videoRef.current?.src}
-                    style={{ width: "100%", maxHeight: 260, display: "block", objectFit: "contain", background: "#000" }}
-                    controls={!isRunning}
-                    playsInline
-                    muted
-                  />
+                  <video src={videoRef.current?.src} style={{ width: "100%", maxHeight: 260, display: "block", objectFit: "contain", background: "#000" }} controls={!isRunning} playsInline muted/>
                 </div>
               )}
             </div>
@@ -621,6 +694,49 @@ export default function VideoCommentaryPage({ onBack }) {
               <PitchSVG style={{ width: "100%", height: "100%", display: "block" }}/>
             </div>
 
+            {/* Personality */}
+            <div style={{ background: T.card, borderRadius: 10, padding: "16px", border: `1px solid ${T.border}`, flexShrink: 0 }}>
+              <div style={{ fontSize: 10, color: T.textDim, fontWeight: 700, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 12 }}>Commentator Personality</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {PERSONALITIES.map(p => {
+                  const active = personality === p.id;
+                  return (
+                    <button key={p.id} className="persona-btn" onClick={() => setPersonality(p.id)}
+                      style={{ padding: "7px 14px", borderRadius: 7, border: `1px solid ${active ? p.color : T.border2}`, background: active ? `${p.color}18` : T.panel, color: active ? p.color : T.textMid, fontSize: 12, fontWeight: active ? 700 : 500, cursor: "pointer", transition: "all 0.15s", display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 14 }}>{p.emoji}</span> {p.label}
+                      {active && <span style={{ fontSize: 8, background: p.color, color: "#000", borderRadius: 3, padding: "1px 4px", fontWeight: 800, letterSpacing: 0.5 }}>ON</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: 10, fontSize: 11, color: T.textMid, fontStyle: "italic" }}>
+                {currentPersona.emoji} <strong style={{ color: currentPersona.color }}>{currentPersona.name}</strong> — {{ harsha: "Warm storyteller who builds beautiful cricket narratives.", shastri: "LOUD and DRAMATIC — every ball is the greatest ever.", funny: "Jokes, puns and comedy about every moment on field.", analyst: "Precise technical breakdown of technique and tactics.", cinematic: "Bollywood epic energy — heroes, villains and destiny.", global: "Cool, classy BBC/Sky Sports professional tone." }[personality]}
+              </div>
+            </div>
+
+            {/* Favourite Players */}
+            <div style={{ background: T.card, borderRadius: 10, padding: "16px", border: `1px solid ${T.border}`, flexShrink: 0 }}>
+              <div style={{ fontSize: 10, color: T.textDim, fontWeight: 700, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+                <IcoUser s={11} c={T.textDim}/> Favourite Players
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, color: T.textMid, marginBottom: 5, fontWeight: 600 }}>🏏 Favourite Batter</div>
+                  <input className="player-inp" value={favBatter} onChange={e => { setFavBatter(e.target.value); localStorage.setItem("vc_fav_batter", e.target.value); }} placeholder="e.g. Virat Kohli" style={inpStyle}/>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, color: T.textMid, marginBottom: 5, fontWeight: 600 }}>🎯 Favourite Bowler</div>
+                  <input className="player-inp" value={favBowler} onChange={e => { setFavBowler(e.target.value); localStorage.setItem("vc_fav_bowler", e.target.value); }} placeholder="e.g. Jasprit Bumrah" style={inpStyle}/>
+                </div>
+              </div>
+              {(favBatter || favBowler) && (
+                <div style={{ marginTop: 10, fontSize: 11, color: T.textMid }}>
+                  {currentPersona.emoji} {currentPersona.name} will specially mention {[favBatter, favBowler].filter(Boolean).join(" & ")} during commentary.
+                </div>
+              )}
+            </div>
+
+            {/* Language */}
             <div style={{ background: T.card, borderRadius: 10, padding: "16px", border: `1px solid ${T.border}`, flexShrink: 0 }}>
               <div style={{ fontSize: 10, color: T.textDim, fontWeight: 700, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 12 }}>Commentary Language</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
@@ -630,6 +746,7 @@ export default function VideoCommentaryPage({ onBack }) {
               </div>
             </div>
 
+            {/* Voice + Actions */}
             <div style={{ background: T.card, borderRadius: 10, padding: "16px", border: `1px solid ${T.border}`, flexShrink: 0 }}>
               <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
                 <div>
@@ -656,8 +773,8 @@ export default function VideoCommentaryPage({ onBack }) {
                       <IcoVideo s={13} c={T.textMid}/> Change
                     </label>
                     {!isRunning ? (
-                      <button className="act-btn" onClick={startCommentary} style={{ background: "linear-gradient(135deg, #276749, #38A169)", color: "#fff", border: "none", borderRadius: 7, padding: "8px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 16px rgba(39,103,73,0.5)", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 8 }}>
-                        <IcoPlay s={13} c="#fff"/> Start AI Commentary
+                      <button className="act-btn" onClick={startCommentary} style={{ background: `linear-gradient(135deg, #276749, ${currentPersona.color})`, color: "#fff", border: "none", borderRadius: 7, padding: "8px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 16px ${currentPersona.color}40`, transition: "all 0.2s", display: "flex", alignItems: "center", gap: 8 }}>
+                        <IcoPlay s={13} c="#fff"/> {currentPersona.emoji} Start Commentary
                       </button>
                     ) : (
                       <button className="stop-btn" onClick={stopCommentary} style={{ background: "rgba(229,62,62,0.08)", color: T.red, border: `1px solid rgba(229,62,62,0.3)`, borderRadius: 7, padding: "8px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 8 }}>
@@ -712,7 +829,7 @@ export default function VideoCommentaryPage({ onBack }) {
                 {commentary.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "48px 20px" }}>
                     <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}><WicketSVG width={52} height={84} style={{ opacity: 0.25 }}/></div>
-                    <div style={{ fontSize: 13, color: T.textDim, lineHeight: 1.9 }}>Upload a cricket video<br/>and hit <strong style={{ color: T.accent, fontWeight: 700 }}>Start AI Commentary</strong><br/>to see the live feed here</div>
+                    <div style={{ fontSize: 13, color: T.textDim, lineHeight: 1.9 }}>Upload a cricket video<br/>and hit <strong style={{ color: T.accent, fontWeight: 700 }}>Start Commentary</strong><br/>to see the live feed here</div>
                     <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 20 }}>
                       <BallSVG size={18} style={{ opacity: 0.2 }}/>
                       <BatSVG width={12} height={40} style={{ opacity: 0.2 }}/>
@@ -732,8 +849,11 @@ export default function VideoCommentaryPage({ onBack }) {
                   { label: "Commentary Lines",  val: commentary.length,                                      color: T.accent  },
                   { label: "TTS Clips",         val: commentary.filter(c => c.tts).length,                  color: "#63B3ED" },
                   { label: "Language",          val: INDIAN_LANGUAGES.find(l => l.code === language)?.name, color: "#B794F4" },
+                  { label: "Personality",       val: currentPersona.emoji + " " + currentPersona.label,     color: currentPersona.color },
+                  { label: "Fav Batter",        val: favBatter || "—",                                       color: T.gold    },
+                  { label: "Fav Bowler",        val: favBowler || "—",                                       color: T.gold    },
                   { label: "Frame Interval",    val: `${FRAME_INTERVAL_SEC}s`,                               color: T.gold    },
-                  { label: "AI Model",          val: "Gemini 2.0 Flash",                                     color: T.textMid },
+                  { label: "AI Model",          val: "Gemini 2.5 Flash",                                     color: T.textMid },
                   { label: "TTS Engine",        val: "Sarvam Bulbul v2",                                     color: T.textMid },
                   { label: "TTS Status",        val: ttsEnabled && sarvamKey ? "Active" : "Off",             color: ttsEnabled && sarvamKey ? T.accent : T.red },
                 ].map(s => (
@@ -768,7 +888,7 @@ export default function VideoCommentaryPage({ onBack }) {
             )}
 
             <div style={{ padding: "8px 14px", borderTop: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", flexShrink: 0 }}>
-              <span style={{ fontSize: 9, color: T.textDim }}>Gemini 2.0 Flash · Sarvam Bulbul v2</span>
+              <span style={{ fontSize: 9, color: T.textDim }}>Gemini 2.5 Flash · Sarvam Bulbul v2</span>
               <span style={{ fontSize: 9, color: T.textDim }}>Every {FRAME_INTERVAL_SEC}s</span>
             </div>
           </div>
@@ -777,4 +897,3 @@ export default function VideoCommentaryPage({ onBack }) {
     </div>
   );
 }
-
