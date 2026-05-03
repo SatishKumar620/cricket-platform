@@ -328,7 +328,6 @@ export default function App() {
   const [matches, setMatches]             = useState(MOCK_MATCHES);
   const [sharedVideoSrc, setSharedVideoSrc] = useState("");
   const [activeVideoId, setActiveVideoId] = useState("");
-  const [sharedVideoSrc, setSharedVideoSrc] = useState("");
   const [activeId, setActiveId]           = useState(MOCK_MATCHES[0].id);
   const [commentary, setCommentary]       = useState([]);
   const [activeLanguage, setActiveLanguage] = useState("en");
