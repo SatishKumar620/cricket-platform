@@ -64,13 +64,9 @@ function FeedBubble({ item, isLatest }) {
 export default function CommentaryPanel({ onVideoLoad, onYtUrl }) {
   const hook = useCommentary();
   const [showKeys,   setShowKeys]   = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
-  const [videoSrc,   setVideoSrc]   = useState("");
-  const [videoName,  setVideoName]  = useState("");
   const [activeTab,  setActiveTab]  = useState("commentary");
   const [ytUrl,      setYtUrl]      = useState("");
   const [ytVideoId,  setYtVideoId]  = useState("");
-  const [sourceMode, setSourceMode] = useState("upload");
   const [chatMsgs,   setChatMsgs]   = useState([
     { id:1, user:"Rahul_11",  color:"#00e676", text:"What a delivery by Bumrah!" },
     { id:2, user:"CricFan99", color:"#c4956a", text:"Jadeja holding it together well" },
@@ -80,7 +76,6 @@ export default function CommentaryPanel({ onVideoLoad, onYtUrl }) {
   const [myColor] = useState(["#00e676","#c4956a","#faad14","#ff4d4f","#69b1ff"][Math.floor(Math.random()*5)]);
   const [myUser]  = useState("Fan" + Math.floor(Math.random()*9000+1000));
 
-  const videoRef   = useRef(null);
   const chatBottom = useRef(null);
 
   useEffect(() => { chatBottom.current?.scrollIntoView({ behavior:"smooth" }); }, [chatMsgs]);
@@ -89,22 +84,10 @@ export default function CommentaryPanel({ onVideoLoad, onYtUrl }) {
     const file = e.target.files?.[0]; if (!file) return;
     hook.stop(); hook.clearFeed();
     const url = URL.createObjectURL(file);
-    setVideoSrc(url);
-    setVideoName(file.name);
-    setVideoReady(false);
     if (onVideoLoad) onVideoLoad(url);
   };
 
-  // Once videoSrc set, wait for metadata
-  useEffect(() => {
-    if (!videoSrc || !videoRef.current) return;
-    const vid = videoRef.current;
-    vid.src = videoSrc;
-    vid.load();
-    const onMeta = () => setVideoReady(true);
-    vid.addEventListener("loadedmetadata", onMeta);
-    return () => vid.removeEventListener("loadedmetadata", onMeta);
-  }, [videoSrc]);
+
 
   const extractYtId = (url) => {
     const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
@@ -122,21 +105,13 @@ export default function CommentaryPanel({ onVideoLoad, onYtUrl }) {
 
   const handleStart = () => {
     if (!hook.geminiKey) { setShowKeys(true); return; }
-    // Always use the main unified player
     const mainPlayer = document.getElementById("main-video-player");
     if (mainPlayer && mainPlayer.src) {
       const ok = hook.start(mainPlayer);
       if (!ok) setShowKeys(true);
       return;
     }
-    // Fallback to hidden ref for uploaded video
-    if (sourceMode === "upload") {
-      if (!videoRef.current || !videoReady) return;
-      const ok = hook.start(videoRef.current);
-      if (!ok) setShowKeys(true);
-    } else {
-      alert("Paste a YouTube URL and click Load first, or upload a video.");
-    }
+    alert("Upload a video or select a YouTube video first — it will play in the main player.");
   };
 
   const sendChat = () => {
@@ -192,15 +167,9 @@ export default function CommentaryPanel({ onVideoLoad, onYtUrl }) {
       </div>
 
       {/* Active video status */}
-      {(videoName || ytVideoId) && (
-        <div style={{ margin:"0 14px 8px", padding:"6px 10px", background:C.warm, borderRadius:8, border:"1px solid "+C.sand, display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-          <span>{ytVideoId ? "▶" : "🎥"}</span>
-          <div style={{ fontSize:11, color:C.ink, fontWeight:600, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-            {ytVideoId ? "YouTube video in player" : videoName}
-          </div>
-          {hook.isRunning && <div style={{ fontSize:9, fontWeight:800, color:"#fff", background:"#c0392b", padding:"2px 6px", borderRadius:4 }}>LIVE</div>}
-          {hook.status==="processing" && <div style={{ width:10, height:10, border:"2px solid "+C.clay, borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.7s linear infinite" }} />}
-          <video ref={videoRef} style={{ display:"none" }} playsInline onEnded={() => hook.stop()} />
+      {ytVideoId && (
+        <div style={{ margin:"0 14px 8px", padding:"6px 10px", background:"#f0fff4", borderRadius:8, border:"1px solid #c6f6d5", fontSize:11, color:"#276749", flexShrink:0 }}>
+          ✅ YouTube video loaded in main player
         </div>
       )}
 
