@@ -213,7 +213,7 @@ export default function CommentaryPanel({ onVideoLoad, onYtUrl }) {
         </button>
         <div style={{ marginLeft:"auto" }}>
           {!hook.isRunning ? (
-            <button onClick={handleStart} disabled={sourceMode==="upload" && !videoReady} style={{ background: sourceMode==="upload" && !videoReady ? C.sand : "linear-gradient(135deg,"+C.pitch2+","+C.pitch+")", color:"#fff", border:"none", borderRadius:8, padding:"7px 18px", fontSize:12, fontWeight:700, cursor:sourceMode==="upload" && !videoReady ? "not-allowed" : "pointer", display:"flex", alignItems:"center", gap:7, boxShadow:"0 4px 14px rgba(45,90,61,0.35)" }}>
+            <button onClick={handleStart} style={{ background:"linear-gradient(135deg,"+C.pitch2+","+C.pitch+")", color:"#fff", border:"none", borderRadius:8, padding:"7px 18px", fontSize:12, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:7, boxShadow:"0 4px 14px rgba(45,90,61,0.35)" }}>
               ▶ Start Commentary
             </button>
           ) : (
