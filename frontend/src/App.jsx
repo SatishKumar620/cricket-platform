@@ -557,7 +557,7 @@ export default function App() {
 
         {/* Right sidebar — AI Commentary Panel */}
         <div style={{ gridColumn: "2", gridRow: "1 / 4", display: "flex", flexDirection: "column", borderLeft: "1px solid #e8e8e8", overflow: "hidden" }}>
-          <CommentaryPanel onVideoLoad={setSharedVideoSrc} onYtUrl={setActiveVideoId} />
+          <CommentaryPanel onVideoLoad={setSharedVideoSrc} onYtUrl={setActiveVideoId} activeVideoId={activeVideoId} hasUploadedVideo={!!sharedVideoSrc} />
         </div>
 
       </div>

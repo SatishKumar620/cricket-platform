@@ -61,7 +61,7 @@ function FeedBubble({ item, isLatest }) {
   );
 }
 
-export default function CommentaryPanel({ onVideoLoad, onYtUrl }) {
+export default function CommentaryPanel({ onVideoLoad, onYtUrl, activeVideoId, hasUploadedVideo }) {
   const hook = useCommentary();
   const [showKeys,   setShowKeys]   = useState(false);
   const [activeTab,  setActiveTab]  = useState("commentary");
@@ -105,13 +105,17 @@ export default function CommentaryPanel({ onVideoLoad, onYtUrl }) {
 
   const handleStart = () => {
     if (!hook.geminiKey) { setShowKeys(true); return; }
+    if (activeVideoId && !hasUploadedVideo) {
+      alert("AI Commentary cannot capture YouTube iframe audio due to browser security.\n\nFix: Download this YouTube video as MP4 and upload it using the Upload Video button for AI commentary!");
+      return;
+    }
     const mainPlayer = document.getElementById("main-video-player");
     if (mainPlayer && mainPlayer.src) {
       const ok = hook.start(mainPlayer);
       if (!ok) setShowKeys(true);
       return;
     }
-    alert("Upload a video or select a YouTube video first — it will play in the main player.");
+    alert("Upload a video first using the Upload Video button.");
   };
 
   const sendChat = () => {
@@ -212,8 +216,13 @@ export default function CommentaryPanel({ onVideoLoad, onYtUrl }) {
           {hook.ttsEnabled ? "🔊 TTS On" : "🔇 TTS Off"}
         </button>
         <div style={{ marginLeft:"auto" }}>
+          {activeVideoId && !hasUploadedVideo && (
+            <div style={{ fontSize:10, color:C.clay, fontStyle:"italic", marginBottom:4, textAlign:"right" }}>
+              ⚠ Upload MP4 for AI commentary
+            </div>
+          )}
           {!hook.isRunning ? (
-            <button onClick={handleStart} style={{ background:"linear-gradient(135deg,"+C.pitch2+","+C.pitch+")", color:"#fff", border:"none", borderRadius:8, padding:"7px 18px", fontSize:12, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:7, boxShadow:"0 4px 14px rgba(45,90,61,0.35)" }}>
+            <button onClick={handleStart} style={{ background: activeVideoId && !hasUploadedVideo ? C.sand : "linear-gradient(135deg,"+C.pitch2+","+C.pitch+")", color:"#fff", border:"none", borderRadius:8, padding:"7px 18px", fontSize:12, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:7, boxShadow:"0 4px 14px rgba(45,90,61,0.35)" }}>
               ▶ Start Commentary
             </button>
           ) : (
